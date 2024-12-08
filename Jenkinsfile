@@ -28,7 +28,8 @@ pipeline {
                     sudo chmod -R 755 /var/lib/jenkins/.npm
                     
                     # Configure npm
-                    sudo -u jenkins npm config set registry https://registry.npmjs.org/
+                    sudo -u jenkins npm config set registry https://registry.npmmirror.com/
+                    sudo -u jenkins npm config set strict-ssl false
                     sudo -u jenkins npm cache clean --force
                 '''
             }
@@ -42,7 +43,7 @@ pipeline {
                         sudo rm -rf node_modules package-lock.json
                         
                         # Install as jenkins
-                        sudo -u jenkins npm install --verbose
+                        sudo -u jenkins npm install --verbose --no-audit --no-fund --legacy-peer-deps
                     '''
                 }
             }
