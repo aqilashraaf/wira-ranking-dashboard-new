@@ -62,7 +62,7 @@
             </div>
             <div class="requirement" :class="{ met: hasSpecialChar }">
               <span class="icon">{{ hasSpecialChar ? '✅' : '❌' }}</span>
-              At least one special character (!@#$%^&*(),.?":{}|<>)
+              At least one special character (!@#$%^&amp;*(),.?&quot;:{}|)
             </div>
           </div>
           <span class="form-help error" v-if="errors.password">{{ errors.password }}</span>
@@ -132,7 +132,7 @@ export default {
     const hasUpperCase = computed(() => /[A-Z]/.test(password.value));
     const hasLowerCase = computed(() => /[a-z]/.test(password.value));
     const hasNumber = computed(() => /[0-9]/.test(password.value));
-    const hasSpecialChar = computed(() => /[!@#$%^&*(),.?":{}|<>]/.test(password.value));
+    const hasSpecialChar = computed(() => /[!@#$%^&*(),.?":{}|]/.test(password.value));
 
     // Password matching
     const passwordsMatch = computed(() => 
@@ -196,7 +196,7 @@ export default {
         /[A-Z]/.test(password.value) &&
         /[a-z]/.test(password.value) &&
         /[0-9]/.test(password.value) &&
-        /[!@#$%^&*(),.?":{}|<>]/.test(password.value) &&
+        /[!@#$%^&*(),.?":{}|]/.test(password.value) &&
         password.value === confirmPassword.value &&
         !Object.values(errors.value).some(error => error !== '')
       );
