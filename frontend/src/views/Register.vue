@@ -43,10 +43,27 @@
               {{ showPassword ? '🔒' : '👁️' }}
             </button>
           </div>
-          <div v-if="password" class="password-info">
-            Characters: {{ password.split('').map(char => 
-              char === char.toUpperCase() ? '⬆️' : '⬇️'
-            ).join(' ') }}
+          <div v-if="password" class="password-requirements">
+            <div class="requirement" :class="{ met: hasMinLength }">
+              <span class="icon">{{ hasMinLength ? '✅' : '❌' }}</span>
+              At least 8 characters
+            </div>
+            <div class="requirement" :class="{ met: hasUpperCase }">
+              <span class="icon">{{ hasUpperCase ? '✅' : '❌' }}</span>
+              At least one uppercase letter
+            </div>
+            <div class="requirement" :class="{ met: hasLowerCase }">
+              <span class="icon">{{ hasLowerCase ? '✅' : '❌' }}</span>
+              At least one lowercase letter
+            </div>
+            <div class="requirement" :class="{ met: hasNumber }">
+              <span class="icon">{{ hasNumber ? '✅' : '❌' }}</span>
+              At least one number
+            </div>
+            <div class="requirement" :class="{ met: hasSpecialChar }">
+              <span class="icon">{{ hasSpecialChar ? '✅' : '❌' }}</span>
+              At least one special character (!@#$%^&*(),.?":{}|<>)
+            </div>
           </div>
           <span class="form-help error" v-if="errors.password">{{ errors.password }}</span>
         </div>
@@ -58,7 +75,7 @@
               v-model="confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
               placeholder="Confirm your password"
-              @blur="validateConfirmPassword"
+              @input="validateConfirmPassword"
             />
             <button 
               type="button" 
@@ -67,6 +84,10 @@
             >
               {{ showConfirmPassword ? '🔒' : '👁️' }}
             </button>
+          </div>
+          <div v-if="confirmPassword" class="password-match" :class="{ matched: passwordsMatch }">
+            <span class="icon">{{ passwordsMatch ? '✅' : '❌' }}</span>
+            {{ passwordsMatch ? 'Passwords match' : 'Passwords do not match' }}
           </div>
           <span class="form-help error" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</span>
         </div>
@@ -106,6 +127,18 @@ export default {
       confirmPassword: ''
     });
 
+    // Password requirements
+    const hasMinLength = computed(() => password.value.length >= 8);
+    const hasUpperCase = computed(() => /[A-Z]/.test(password.value));
+    const hasLowerCase = computed(() => /[a-z]/.test(password.value));
+    const hasNumber = computed(() => /[0-9]/.test(password.value));
+    const hasSpecialChar = computed(() => /[!@#$%^&*(),.?":{}|<>]/.test(password.value));
+
+    // Password matching
+    const passwordsMatch = computed(() => 
+      confirmPassword.value && password.value === confirmPassword.value
+    );
+
     const validateUsername = () => {
       if (username.value.length < 3) {
         errors.value.username = 'Username must be at least 3 characters long';
@@ -126,14 +159,16 @@ export default {
     };
 
     const validatePassword = () => {
-      if (password.value.length < 8) {
+      if (!hasMinLength.value) {
         errors.value.password = 'Password must be at least 8 characters long';
-      } else if (!/[A-Z]/.test(password.value)) {
+      } else if (!hasUpperCase.value) {
         errors.value.password = 'Password must contain at least one uppercase letter';
-      } else if (!/[a-z]/.test(password.value)) {
+      } else if (!hasLowerCase.value) {
         errors.value.password = 'Password must contain at least one lowercase letter';
-      } else if (!/[0-9]/.test(password.value)) {
+      } else if (!hasNumber.value) {
         errors.value.password = 'Password must contain at least one number';
+      } else if (!hasSpecialChar.value) {
+        errors.value.password = 'Password must contain at least one special character';
       } else {
         errors.value.password = '';
       }
@@ -143,7 +178,9 @@ export default {
     };
 
     const validateConfirmPassword = () => {
-      if (password.value !== confirmPassword.value) {
+      if (!confirmPassword.value) {
+        errors.value.confirmPassword = 'Please confirm your password';
+      } else if (!passwordsMatch.value) {
         errors.value.confirmPassword = 'Passwords do not match';
       } else {
         errors.value.confirmPassword = '';
@@ -159,6 +196,7 @@ export default {
         /[A-Z]/.test(password.value) &&
         /[a-z]/.test(password.value) &&
         /[0-9]/.test(password.value) &&
+        /[!@#$%^&*(),.?":{}|<>]/.test(password.value) &&
         password.value === confirmPassword.value &&
         !Object.values(errors.value).some(error => error !== '')
       );
@@ -199,7 +237,13 @@ export default {
       showConfirmPassword,
       errors,
       isFormValid,
-      handleRegister
+      handleRegister,
+      hasMinLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      hasSpecialChar,
+      passwordsMatch
     };
   }
 };
@@ -277,12 +321,53 @@ input {
   font-size: 1.2em;
 }
 
-.password-info {
-  margin-top: 5px;
-  font-family: monospace;
-  font-size: 14px;
+.password-requirements {
+  margin-top: 8px;
+  font-size: 0.875rem;
   color: #666;
-  letter-spacing: 2px;
+  padding: 10px;
+  border-radius: 4px;
+  background: #f8f9fa;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.requirement.met {
+  opacity: 1;
+  color: #4CAF50;
+}
+
+.requirement .icon {
+  margin-right: 8px;
+  font-size: 1rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.password-match {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.password-match.matched {
+  color: #4CAF50;
+}
+
+.password-match .icon {
+  margin-right: 8px;
+  font-size: 1rem;
+  min-width: 20px;
+  text-align: center;
 }
 
 .form-help {

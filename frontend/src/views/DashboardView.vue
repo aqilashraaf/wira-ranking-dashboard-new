@@ -56,16 +56,38 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useToast } from 'vue-toastification'
+import { useRouter } from 'vue-router'
 import ClassDistributionChart from '../components/ClassDistributionChart.vue'
 
+const toast = useToast()
+const router = useRouter()
 const topPlayers = ref([])
 
 onMounted(async () => {
   try {
-    const response = await fetch('/api/rankings?page=1&per_page=10')
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    const response = await fetch('/api/rankings?page=1&per_page=10', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (response.status === 401) {
+      toast.error('Session expired. Please login again.')
+      router.push('/login')
+      return
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
+
     const data = await response.json()
     if (data && data.data) {
       topPlayers.value = data.data.map(player => ({
@@ -75,9 +97,11 @@ onMounted(async () => {
       }))
     } else {
       console.error('Invalid data format received:', data)
+      toast.error('Failed to load rankings data')
     }
   } catch (error) {
     console.error('Error fetching top players:', error)
+    toast.error('Failed to load rankings')
   }
 })
 </script>

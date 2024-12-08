@@ -62,32 +62,32 @@ func CheckPassword(password, hash string) bool {
 
 // Generate2FASecret generates a new TOTP secret
 func Generate2FASecret() (string, string, error) {
-	// Generate random bytes for the secret
-	bytes := make([]byte, 20)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", "", err
-	}
+    // Generate random bytes for the secret
+    bytes := make([]byte, 20)
+    _, err := rand.Read(bytes)
+    if err != nil {
+        return "", "", err
+    }
 
-	// Encode the secret in base32
-	secret := base32.StdEncoding.EncodeToString(bytes)
+    // Generate the QR code URL using the generated secret
+    key, err := totp.Generate(totp.GenerateOpts{
+        Issuer:      "WIRA Dashboard",
+        AccountName: "user",
+        Secret:      bytes,
+        SecretSize:  20,
+        Period:      30,
+        Digits:      6,
+    })
+    if err != nil {
+        return "", "", err
+    }
 
-	// Generate the QR code URL
-	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      "WIRA Dashboard",
-		AccountName: "user@example.com",
-		SecretSize:  20,
-	})
-	if err != nil {
-		return "", "", err
-	}
-
-	return secret, key.URL(), nil
+    return key.Secret(), key.URL(), nil
 }
 
 // Validate2FACode validates a TOTP code
 func Validate2FACode(secret, code string) bool {
-	return totp.Validate(code, secret)
+    return totp.Validate(code, secret)
 }
 
 // GenerateRefreshToken generates a new refresh token

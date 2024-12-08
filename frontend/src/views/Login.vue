@@ -31,11 +31,6 @@
               {{ showPassword ? '🔒' : '👁️' }}
             </button>
           </div>
-          <div v-if="password" class="password-info">
-            Characters: {{ password.split('').map(char => 
-              char === char.toUpperCase() ? '⬆️' : '⬇️'
-            ).join(' ') }}
-          </div>
         </div>
         <button @click="handleLogin" :disabled="!isValid">
           Login
@@ -44,10 +39,11 @@
           Don't have an account? <router-link to="/register">Register</router-link>
         </p>
       </div>
-      <TwoFactorVerify
-        v-else
-        :onVerify="handle2FAVerification"
-      />
+      <div v-else>
+        <TwoFactorVerify
+          :onVerify="handle2FAVerification"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -57,7 +53,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import axios from 'axios';
-import TwoFactorVerify from '@/components/TwoFactorVerify.vue';
+import TwoFactorVerify from '../components/TwoFactorVerify.vue';
 
 export default {
   name: 'Login',
@@ -80,53 +76,60 @@ export default {
 
     const handleLogin = async () => {
       try {
+        console.log('Attempting login...');
         const response = await axios.post('/api/auth/login', {
           username: username.value,
-          password: password.value
+          password: password.value,
+          totp_code: null
         });
-
-        if (response.data.requires_2fa) {
+        console.log('Login response:', response.data);
+        
+        // Store tokens and redirect
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('refresh_token', response.data.refresh_token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+        toast.success('Login successful');
+        router.push(router.currentRoute.value.query.redirect || '/dashboard');
+        
+      } catch (error) {
+        console.log('Login error response:', error.response?.data);
+        
+        // Check if 2FA is required
+        if (error.response?.data?.requires_2fa) {
+          console.log('2FA required, showing prompt...');
           requires2FA.value = true;
           loginCredentials.value = {
             username: username.value,
             password: password.value
           };
+          toast.info('Please enter your 2FA code');
         } else {
-          // Store tokens
-          localStorage.setItem('access_token', response.data.access_token);
-          localStorage.setItem('refresh_token', response.data.refresh_token);
-          
-          // Configure axios defaults
-          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-          
-          toast.success('Login successful');
-          
-          // Redirect to saved path or dashboard
-          const redirectPath = router.currentRoute.value.query.redirect || '/dashboard';
-          router.push(redirectPath);
+          // Handle other errors
+          toast.error(error.response?.data?.error || 'Login failed');
         }
-      } catch (error) {
-        toast.error(error.response?.data?.error || 'Login failed');
       }
     };
 
     const handle2FAVerification = async (code) => {
       try {
+        console.log('Verifying 2FA code...');
         const response = await axios.post('/api/auth/login', {
-          ...loginCredentials.value,
+          username: loginCredentials.value.username,
+          password: loginCredentials.value.password,
           totp_code: code
         });
-
+        
+        console.log('2FA verification response:', response.data);
+        
         // Store tokens
         localStorage.setItem('access_token', response.data.access_token);
         localStorage.setItem('refresh_token', response.data.refresh_token);
-        
-        // Configure axios defaults
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
         
         toast.success('Login successful');
         router.push('/dashboard');
       } catch (error) {
+        console.error('2FA verification error:', error.response?.data || error);
         toast.error(error.response?.data?.error || 'Invalid 2FA code');
       }
     };
@@ -213,15 +216,7 @@ input {
   border: none;
   cursor: pointer;
   padding: 0;
-  font-size: 1.2em;
-}
-
-.password-info {
-  margin-top: 5px;
-  font-family: monospace;
-  font-size: 14px;
-  color: #666;
-  letter-spacing: 2px;
+  font-size: 1.2rem;
 }
 
 button {

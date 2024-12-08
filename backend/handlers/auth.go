@@ -111,7 +111,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Attempting login for user: %s", req.Username)
+	log.Printf("Login request for user: %s, has 2FA code: %v", req.Username, req.TOTPCode != "")
 
 	// Get user from database
 	var user models.User
@@ -130,7 +130,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Found user: %s (ID: %d)", user.Username, user.ID)
+	log.Printf("Found user: %s (ID: %d), 2FA enabled: %v", user.Username, user.ID, user.TwoFactorEnabled)
 
 	// Verify password
 	if !utils.CheckPassword(req.Password, user.PasswordHash) {
@@ -140,18 +140,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Password verified for user: %s", req.Username)
-
 	// Check 2FA if enabled
 	if user.TwoFactorEnabled {
+		log.Printf("2FA is enabled, code provided: %v", req.TOTPCode != "")
 		if req.TOTPCode == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "2FA code required", "requires_2fa": true})
+			log.Printf("No 2FA code provided, requesting 2FA")
+			c.JSON(http.StatusOK, gin.H{
+				"requires_2fa": true,
+				"message": "2FA code required",
+			})
 			return
 		}
 		if !utils.Validate2FACode(user.TwoFactorSecret.String, req.TOTPCode) {
+			log.Printf("Invalid 2FA code provided")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid 2FA code"})
 			return
 		}
+		log.Printf("2FA code validated successfully")
 	}
 
 	// Generate tokens
@@ -185,10 +190,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	log.Printf("Login successful for user: %s", req.Username)
 
-	c.JSON(http.StatusOK, models.TokenResponse{
-		AccessToken:  token,
-		RefreshToken: refreshToken,
-		ExpiresIn:    3600,
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": token,
+		"refresh_token": refreshToken,
+		"expires_in": 3600,
 	})
 }
 
