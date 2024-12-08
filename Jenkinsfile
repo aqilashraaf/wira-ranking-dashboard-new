@@ -135,40 +135,70 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''#!/bin/bash
+                        set -x
                         # Create .ssh directory if it doesn't exist
                         mkdir -p ~/.ssh
                         chmod 700 ~/.ssh
                         
-                        # Copy key to temp location
-                        cp "$SSH_KEY" ~/.ssh/temp_key
+                        echo "=== Checking SSH key format ==="
+                        # Create a temporary directory for key operations
+                        TEMP_DIR=$(mktemp -d)
+                        cp "$SSH_KEY" $TEMP_DIR/original_key
+                        chmod 600 $TEMP_DIR/original_key
+                        
+                        # Display key format
+                        echo "Original key format:"
+                        head -n 1 $TEMP_DIR/original_key
+                        
+                        # Try to convert key to PEM format
+                        echo "Converting key to PEM format..."
+                        cp $TEMP_DIR/original_key $TEMP_DIR/converted_key
+                        ssh-keygen -p -N "" -m PEM -f $TEMP_DIR/converted_key || true
+                        
+                        # Copy the converted key
+                        cp $TEMP_DIR/converted_key ~/.ssh/temp_key
                         chmod 600 ~/.ssh/temp_key
                         
                         echo "=== SSH key permissions ==="
                         ls -la ~/.ssh/temp_key
                         
+                        echo "=== SSH debug info ==="
+                        ssh-keygen -l -f ~/.ssh/temp_key || true
+                        
                         # Add host key
                         ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts 2>/dev/null
                         
-                        echo "=== Attempting SSH connection with deployment commands ==="
-                        ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
-                            # Pull latest images
-                            docker pull 173.212.239.58:5000/frontend:latest
-                            docker pull 173.212.239.58:5000/backend:latest
-                            
-                            # Stop existing containers
-                            docker stop frontend backend || true
-                            docker rm frontend backend || true
-                            
-                            # Start new containers
-                            docker run -d --name frontend -p 80:80 173.212.239.58:5000/frontend:latest
-                            docker run -d --name backend -p 8080:8080 173.212.239.58:5000/backend:latest
-                            
-                            # Clean up old images
-                            docker image prune -f
-                        '
+                        echo "=== Testing SSH connection ==="
+                        # Try both the original and converted keys
+                        echo "Trying with original key..."
+                        ssh -vvv -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $TEMP_DIR/original_key root@173.212.239.58 'echo "SSH connection successful"' || true
                         
-                        # Clean up temp key
-                        rm ~/.ssh/temp_key
+                        echo "Trying with converted key..."
+                        ssh -vvv -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 'echo "SSH connection successful"'
+                        
+                        if [ $? -eq 0 ]; then
+                            echo "=== Deploying containers ==="
+                            ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
+                                # Pull latest images
+                                docker pull 173.212.239.58:5000/frontend:latest
+                                docker pull 173.212.239.58:5000/backend:latest
+                                
+                                # Stop existing containers
+                                docker stop frontend backend || true
+                                docker rm frontend backend || true
+                                
+                                # Start new containers
+                                docker run -d --name frontend -p 80:80 173.212.239.58:5000/frontend:latest
+                                docker run -d --name backend -p 8080:8080 173.212.239.58:5000/backend:latest
+                                
+                                # Clean up old images
+                                docker image prune -f
+                            '
+                        fi
+                        
+                        # Clean up
+                        rm -rf $TEMP_DIR
+                        rm -f ~/.ssh/temp_key
                     '''
                 }
             }
