@@ -133,21 +133,15 @@ pipeline {
         
         stage('Deploy to VPS') {
             steps {
-                sh '''
-                    # Write the SSH key to a temporary file
-                    echo "$SSH_CREDENTIALS" > ssh_key.pem
-                    chmod 600 ssh_key.pem
-                    
-                    # Deploy using SSH
-                    ssh -o StrictHostKeyChecking=no -i ssh_key.pem root@173.212.239.58 '
-                        cd /root/wira-ranking-dashboard
-                        docker-compose pull
-                        docker-compose up -d
-                    '
-                    
-                    # Clean up
-                    rm -f ssh_key.pem
-                '''
+                withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" root@173.212.239.58 '
+                            cd /root/wira-ranking-dashboard
+                            docker-compose pull
+                            docker-compose up -d
+                        '
+                    '''
+                }
             }
         }
     }
