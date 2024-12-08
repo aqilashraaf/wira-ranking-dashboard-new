@@ -8,6 +8,9 @@ pipeline {
     environment {
         NPM_CONFIG_REGISTRY = 'https://registry.npmmirror.com'
         NPM_CONFIG_STRICT_SSL = 'false'
+        DOCKER_REGISTRY = '173.212.239.58:5000'
+        DOCKER_CREDENTIALS = credentials('docker-credentials')
+        SSH_CREDENTIALS = credentials('vps-ssh-key')
     }
     
     stages {
@@ -92,6 +95,40 @@ pipeline {
             }
         }
         
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                    docker-compose build
+                    docker tag wira-ranking-dashboard-new_frontend ${DOCKER_REGISTRY}/frontend:latest
+                    docker tag wira-ranking-dashboard-new_backend ${DOCKER_REGISTRY}/backend:latest
+                '''
+            }
+        }
+        
+        stage('Push Docker Images') {
+            steps {
+                sh '''
+                    echo $DOCKER_CREDENTIALS_PSW | docker login ${DOCKER_REGISTRY} -u $DOCKER_CREDENTIALS_USR --password-stdin
+                    docker push ${DOCKER_REGISTRY}/frontend:latest
+                    docker push ${DOCKER_REGISTRY}/backend:latest
+                '''
+            }
+        }
+        
+        stage('Deploy to VPS') {
+            steps {
+                sshagent(['vps-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no root@173.212.239.58 "
+                            cd /opt/wira-ranking
+                            docker-compose pull
+                            docker-compose up -d
+                        "
+                    '''
+                }
+            }
+        }
+        
         stage('Deploy') {
             steps {
                 sh '''
@@ -122,6 +159,7 @@ pipeline {
     
     post {
         always {
+            sh 'docker logout ${DOCKER_REGISTRY}'
             cleanWs()
         }
     }
