@@ -24,42 +24,56 @@ pipeline {
         
         stage('Prepare Environment') {
             steps {
-                sh '''
-                    # Update Docker Compose
-                    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
-                    chmod +x docker-compose
+                script {
+                    // Install latest docker-compose
+                    sh '''
+                        PLATFORM=$(uname -s)-$(uname -m)
+                        curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-${PLATFORM}" -o docker-compose
+                        chmod +x docker-compose
+                    '''
                     
-                    # Clean workspace
-                    rm -rf frontend/node_modules frontend/dist backend/wira-backend
+                    // Clean previous builds
+                    sh '''
+                        rm -rf frontend/node_modules frontend/dist backend/wira-backend
+                    '''
                     
-                    # Configure npm
-                    npm config set registry https://registry.npmmirror.com/
-                    npm config set @vue:registry https://registry.npmmirror.com/
-                    npm config set @vitejs:registry https://registry.npmmirror.com/
-                    npm config set strict-ssl false
-                    npm config set fetch-retries 5
-                    npm config set fetch-retry-factor 2
-                    npm config set fetch-retry-mintimeout 20000
-                    npm config set fetch-retry-maxtimeout 120000
+                    // Configure npm
+                    sh '''
+                        npm config set registry https://registry.npmmirror.com/
+                        npm config set @vue:registry https://registry.npmmirror.com/
+                        npm config set @vitejs:registry https://registry.npmmirror.com/
+                        npm config set strict-ssl false
+                        npm config set fetch-retries 5
+                        npm config set fetch-retry-factor 2
+                        npm config set fetch-retry-mintimeout 20000
+                        npm config set fetch-retry-maxtimeout 120000
+                        npm cache clean --force
+                        
+                        echo "registry=https://registry.npmmirror.com/" > .npmrc
+                        echo "@vue:registry=https://registry.npmmirror.com/" >> .npmrc
+                        echo "@vitejs:registry=https://registry.npmmirror.com/" >> .npmrc
+                        echo "strict-ssl=false" >> .npmrc
+                        echo "fetch-retries=5" >> .npmrc
+                        echo "fetch-retry-factor=2" >> .npmrc
+                        echo "fetch-retry-mintimeout=20000" >> .npmrc
+                        echo "fetch-retry-maxtimeout=120000" >> .npmrc
+                    '''
                     
-                    # Clear npm cache
-                    npm cache clean --force
+                    // Check Docker socket permissions
+                    sh '''
+                        if [ ! -w /var/run/docker.sock ]; then
+                            echo "Docker socket is not writable. Attempting to fix permissions..."
+                            sudo chmod 666 /var/run/docker.sock
+                        fi
+                    '''
                     
-                    # Create .npmrc file
-                    echo "registry=https://registry.npmmirror.com/" > .npmrc
-                    echo "@vue:registry=https://registry.npmmirror.com/" >> .npmrc
-                    echo "@vitejs:registry=https://registry.npmmirror.com/" >> .npmrc
-                    echo "strict-ssl=false" >> .npmrc
-                    echo "fetch-retries=5" >> .npmrc
-                    echo "fetch-retry-factor=2" >> .npmrc
-                    echo "fetch-retry-mintimeout=20000" >> .npmrc
-                    echo "fetch-retry-maxtimeout=120000" >> .npmrc
-                    
-                    # Ensure Docker socket permissions
-                    if [ ! -w /var/run/docker.sock ]; then
-                        sudo chmod 666 /var/run/docker.sock || true
-                    fi
-                '''
+                    // Configure Docker daemon for insecure registry
+                    sh '''
+                        echo '{ "insecure-registries": ["173.212.239.58:5000"] }' | sudo tee /etc/docker/daemon.json
+                        sudo systemctl restart docker || sudo service docker restart
+                        sleep 10  # Wait for Docker to restart
+                    '''
+                }
             }
         }
         
@@ -67,14 +81,9 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                        # Clean install
                         rm -rf node_modules package-lock.json
-                        
-                        # Copy .npmrc to frontend directory
                         cp ../.npmrc .
-                        
-                        # Install dependencies
-                        export NODE_OPTIONS="--max-old-space-size=4096"
+                        export NODE_OPTIONS=--max-old-space-size=4096
                         npm install --no-audit --no-fund --legacy-peer-deps --registry https://registry.npmmirror.com/
                     '''
                 }
@@ -85,7 +94,7 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                        export NODE_OPTIONS="--max-old-space-size=4096"
+                        export NODE_OPTIONS=--max-old-space-size=4096
                         npm run build
                     '''
                 }
@@ -107,7 +116,6 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh '''
-                    # Build images
                     ./docker-compose build
                     docker tag wira-ranking-pipeline-frontend ${DOCKER_REGISTRY}/frontend:latest
                     docker tag wira-ranking-pipeline-backend ${DOCKER_REGISTRY}/backend:latest
