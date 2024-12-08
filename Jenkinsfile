@@ -215,14 +215,32 @@ pipeline {
             steps {
                 sh '''
                     echo "=== Checking Frontend Health ==="
-                    curl -I http://173.212.239.58:80 || echo "Frontend health check failed"
+                    if curl -f -s -I http://173.212.239.58:80 > /dev/null; then
+                        echo "Frontend is accessible"
+                        curl -s http://173.212.239.58:80 | grep -i "title\\|error" || true
+                    else
+                        echo "Frontend is not accessible"
+                    fi
                     
                     echo "=== Checking Backend Health ==="
-                    curl -I http://173.212.239.58:8080 || echo "Backend health check failed"
+                    if curl -f -s -I http://173.212.239.58:8080 > /dev/null; then
+                        echo "Backend is accessible"
+                        curl -s http://173.212.239.58:8080 | grep -i "error\\|status" || true
+                    else
+                        echo "Backend is not accessible"
+                    fi
+                    
+                    echo "=== Checking Docker Registry ==="
+                    curl -s http://173.212.239.58:5000/v2/_catalog
                     
                     echo "=== Application Status ==="
                     echo "Frontend URL: http://173.212.239.58:80"
                     echo "Backend URL: http://173.212.239.58:8080"
+                    echo "Registry URL: http://173.212.239.58:5000"
+                    
+                    echo "=== Latest Images ==="
+                    echo "Frontend: 173.212.239.58:5000/frontend:latest"
+                    echo "Backend: 173.212.239.58:5000/backend:latest"
                 '''
             }
         }
