@@ -14,12 +14,22 @@ pipeline {
             }
         }
         
-        stage('Fix Permissions') {
+        stage('Prepare Environment') {
             steps {
                 sh '''
-                    # Fix permissions for node_modules
-                    sudo chown -R jenkins:jenkins /var/lib/jenkins/workspace/wira-dashboard
-                    sudo chmod -R 755 /var/lib/jenkins/workspace/wira-dashboard
+                    # Clean workspace
+                    rm -rf frontend/node_modules frontend/dist backend/wira-backend
+
+                    # Fix permissions for workspace
+                    sudo chown -R jenkins:jenkins .
+                    sudo chmod -R 755 .
+                    
+                    # Fix npm cache permissions
+                    sudo chown -R jenkins:jenkins /var/lib/jenkins/.npm
+                    sudo chmod -R 755 /var/lib/jenkins/.npm
+                    
+                    # Clean npm cache
+                    npm cache clean --force
                 '''
             }
         }
@@ -28,9 +38,11 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
+                        # Remove old files
                         rm -rf node_modules package-lock.json
-                        npm cache clean --force
-                        npm install
+
+                        # Install dependencies with explicit user
+                        sudo -u jenkins npm install
                     '''
                 }
             }
