@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_CREDENTIALS = credentials('docker-registry-credentials')
+        DOCKER_CREDENTIALS = credentials('docker-credentials')
         SSH_CREDENTIALS = credentials('vps-ssh-key')
     }
     
@@ -154,8 +154,10 @@ pipeline {
     
     post {
         always {
-            sh 'docker logout 173.212.239.58:5000'
-            cleanWs()
+            node(null) {
+                sh 'docker logout 173.212.239.58:5000'
+                cleanWs()
+            }
         }
     }
 }
