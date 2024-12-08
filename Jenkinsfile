@@ -27,7 +27,8 @@ pipeline {
                     sudo chown -R jenkins:jenkins /var/lib/jenkins/.npm
                     sudo chmod -R 755 /var/lib/jenkins/.npm
                     
-                    # Clean npm cache as jenkins user
+                    # Configure npm
+                    sudo -u jenkins npm config set registry https://registry.npmjs.org/
                     sudo -u jenkins npm cache clean --force
                 '''
             }
@@ -41,7 +42,7 @@ pipeline {
                         sudo rm -rf node_modules package-lock.json
                         
                         # Install as jenkins
-                        sudo -u jenkins npm install
+                        sudo -u jenkins npm install --verbose
                     '''
                 }
             }
