@@ -25,6 +25,10 @@ pipeline {
         stage('Prepare Environment') {
             steps {
                 sh '''
+                    # Update Docker Compose
+                    curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+                    chmod +x docker-compose
+                    
                     # Clean workspace
                     rm -rf frontend/node_modules frontend/dist backend/wira-backend
                     
@@ -98,7 +102,7 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh '''
-                    docker-compose build
+                    ./docker-compose build
                     docker tag wira-ranking-dashboard-new_frontend ${DOCKER_REGISTRY}/frontend:latest
                     docker tag wira-ranking-dashboard-new_backend ${DOCKER_REGISTRY}/backend:latest
                 '''
@@ -119,40 +123,19 @@ pipeline {
             steps {
                 sshagent(['vps-ssh-key']) {
                     sh '''
+                        # Copy docker-compose file to VPS
+                        scp -o StrictHostKeyChecking=no docker-compose.yml root@173.212.239.58:/opt/wira-ranking/
+                        
+                        # Update Docker Compose on VPS and deploy
                         ssh -o StrictHostKeyChecking=no root@173.212.239.58 "
                             cd /opt/wira-ranking
-                            docker-compose pull
-                            docker-compose up -d
+                            curl -L 'https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)' -o docker-compose
+                            chmod +x docker-compose
+                            ./docker-compose pull
+                            ./docker-compose up -d
                         "
                     '''
                 }
-            }
-        }
-        
-        stage('Deploy') {
-            steps {
-                sh '''
-                    # Deploy frontend
-                    rm -rf /var/www/wira-dashboard/*
-                    cp -r frontend/dist/* /var/www/wira-dashboard/
-                    chown -R www-data:www-data /var/www/wira-dashboard
-                    chmod -R 755 /var/www/wira-dashboard
-                    
-                    # Deploy backend
-                    systemctl stop wira-backend || true
-                    mkdir -p /opt/wira-backend
-                    cp backend/wira-backend /opt/wira-backend/
-                    cp backend/.env /opt/wira-backend/ || true
-                    chown -R jenkins:jenkins /opt/wira-backend
-                    chmod -R 755 /opt/wira-backend
-                    
-                    # Deploy Nginx config
-                    cp nginx/nginx.conf /etc/nginx/sites-available/default
-                    nginx -t && systemctl restart nginx
-                    
-                    # Start backend service
-                    systemctl start wira-backend
-                '''
             }
         }
     }
