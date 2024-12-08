@@ -16,11 +16,14 @@ func main() {
 	// Create a new router with default middleware
 	r := gin.Default()
 
-	// Configure CORS
+	// CORS configuration
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"*"}
+	config.AllowOrigins = []string{"http://173.212.239.58", "http://localhost:5173"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	config.ExposeHeaders = []string{"Content-Length"}
+	config.AllowCredentials = true
+
 	r.Use(cors.New(config))
 
 	// Add logging middleware

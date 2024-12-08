@@ -5,7 +5,7 @@ import router from '../router';
 const isDevelopment = import.meta.env.DEV;
 const apiURL = isDevelopment
   ? 'http://localhost:3000'
-  : '/api';
+  : 'http://173.212.239.58/api';
 
 console.log('Environment:', isDevelopment ? 'Development' : 'Production');
 console.log('API URL:', apiURL);
