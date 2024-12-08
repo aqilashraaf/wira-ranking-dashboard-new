@@ -189,8 +189,8 @@ pipeline {
                                 docker rm frontend backend || true
                                 
                                 # Start new containers
-                                docker run -d --name frontend -p 80:80 173.212.239.58:5000/frontend:latest
-                                docker run -d --name backend -p 8080:8080 173.212.239.58:5000/backend:latest
+                                docker run -d --name frontend -p 3000:80 173.212.239.58:5000/frontend:latest
+                                docker run -d --name backend -p 8081:8080 173.212.239.58:5000/backend:latest
                                 
                                 # Clean up old images
                                 docker image prune -f
@@ -215,17 +215,17 @@ pipeline {
             steps {
                 sh '''
                     echo "=== Checking Frontend Health ==="
-                    if curl -f -s -I http://173.212.239.58:80 > /dev/null; then
+                    if curl -f -s -I http://173.212.239.58:3000 > /dev/null; then
                         echo "Frontend is accessible"
-                        curl -s http://173.212.239.58:80 | grep -i "title\\|error" || true
+                        curl -s http://173.212.239.58:3000 | grep -i "title\\|error" || true
                     else
                         echo "Frontend is not accessible"
                     fi
                     
                     echo "=== Checking Backend Health ==="
-                    if curl -f -s -I http://173.212.239.58:8080 > /dev/null; then
+                    if curl -f -s -I http://173.212.239.58:8081 > /dev/null; then
                         echo "Backend is accessible"
-                        curl -s http://173.212.239.58:8080 | grep -i "error\\|status" || true
+                        curl -s http://173.212.239.58:8081 | grep -i "error\\|status" || true
                     else
                         echo "Backend is not accessible"
                     fi
@@ -234,8 +234,8 @@ pipeline {
                     curl -s http://173.212.239.58:5000/v2/_catalog
                     
                     echo "=== Application Status ==="
-                    echo "Frontend URL: http://173.212.239.58:80"
-                    echo "Backend URL: http://173.212.239.58:8080"
+                    echo "Frontend URL: http://173.212.239.58:3000"
+                    echo "Backend URL: http://173.212.239.58:8081"
                     echo "Registry URL: http://173.212.239.58:5000"
                     
                     echo "=== Latest Images ==="
