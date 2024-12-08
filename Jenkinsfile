@@ -25,20 +25,28 @@ pipeline {
                     # Clean workspace
                     rm -rf frontend/node_modules frontend/dist backend/wira-backend
                     
-                    # Create .npmrc file
-                    cat << EOF > .npmrc
-registry=https://registry.npmmirror.com/
-@vue:registry=https://registry.npmmirror.com/
-@vitejs:registry=https://registry.npmmirror.com/
-strict-ssl=false
-fetch-retries=5
-fetch-retry-factor=2
-fetch-retry-mintimeout=20000
-fetch-retry-maxtimeout=120000
-EOF
+                    # Configure npm
+                    npm config set registry https://registry.npmmirror.com/
+                    npm config set @vue:registry https://registry.npmmirror.com/
+                    npm config set @vitejs:registry https://registry.npmmirror.com/
+                    npm config set strict-ssl false
+                    npm config set fetch-retries 5
+                    npm config set fetch-retry-factor 2
+                    npm config set fetch-retry-mintimeout 20000
+                    npm config set fetch-retry-maxtimeout 120000
                     
                     # Clear npm cache
                     npm cache clean --force
+                    
+                    # Create .npmrc file
+                    echo "registry=https://registry.npmmirror.com/" > .npmrc
+                    echo "@vue:registry=https://registry.npmmirror.com/" >> .npmrc
+                    echo "@vitejs:registry=https://registry.npmmirror.com/" >> .npmrc
+                    echo "strict-ssl=false" >> .npmrc
+                    echo "fetch-retries=5" >> .npmrc
+                    echo "fetch-retry-factor=2" >> .npmrc
+                    echo "fetch-retry-mintimeout=20000" >> .npmrc
+                    echo "fetch-retry-maxtimeout=120000" >> .npmrc
                 '''
             }
         }
@@ -55,7 +63,7 @@ EOF
                         
                         # Install dependencies
                         export NODE_OPTIONS="--max-old-space-size=4096"
-                        npm install --prefer-offline --no-audit --no-fund --legacy-peer-deps
+                        npm install --no-audit --no-fund --legacy-peer-deps --registry https://registry.npmmirror.com/
                     '''
                 }
             }

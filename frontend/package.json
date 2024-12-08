@@ -16,7 +16,7 @@
     "pinia": "2.1.6",
     "qrcode": "1.5.3",
     "qrcode.vue": "3.4.1",
-    "vue": "3.3.4",
+    "vue": "3.3.8",
     "vue-chartjs": "5.2.0",
     "vue-qrcode": "2.1.0",
     "vue-router": "4.2.4",
