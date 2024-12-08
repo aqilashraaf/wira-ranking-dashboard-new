@@ -17,19 +17,18 @@ pipeline {
         stage('Prepare Environment') {
             steps {
                 sh '''
-                    # Clean workspace
-                    rm -rf frontend/node_modules frontend/dist backend/wira-backend
-
-                    # Fix permissions for workspace
-                    sudo chown -R jenkins:jenkins .
-                    sudo chmod -R 755 .
+                    # Clean workspace with sudo
+                    sudo rm -rf frontend/node_modules frontend/dist backend/wira-backend
                     
-                    # Fix npm cache permissions
+                    # Set ownership of workspace to jenkins
+                    sudo chown -R jenkins:jenkins .
+                    
+                    # Set ownership of npm cache to jenkins
                     sudo chown -R jenkins:jenkins /var/lib/jenkins/.npm
                     sudo chmod -R 755 /var/lib/jenkins/.npm
                     
-                    # Clean npm cache
-                    npm cache clean --force
+                    # Clean npm cache as jenkins user
+                    sudo -u jenkins npm cache clean --force
                 '''
             }
         }
@@ -38,10 +37,10 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                        # Remove old files
-                        rm -rf node_modules package-lock.json
-
-                        # Install dependencies with explicit user
+                        # Clean as root
+                        sudo rm -rf node_modules package-lock.json
+                        
+                        # Install as jenkins
                         sudo -u jenkins npm install
                     '''
                 }
@@ -51,7 +50,10 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm run build'
+                    sh '''
+                        # Build as jenkins user
+                        sudo -u jenkins npm run build
+                    '''
                 }
             }
         }
