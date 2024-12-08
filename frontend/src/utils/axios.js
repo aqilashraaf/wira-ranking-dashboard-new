@@ -2,15 +2,30 @@ import axios from 'axios';
 import router from '../router';
 
 // Configure axios defaults
-const baseURL = import.meta.env.PROD 
-  ? '/api'  // Production URL (relative path)
-  : 'http://localhost:3000';  // Development URL
+const isDevelopment = import.meta.env.DEV;
+const apiURL = isDevelopment
+  ? 'http://localhost:3000'
+  : '/api';
 
-axios.defaults.baseURL = baseURL;
+console.log('Environment:', isDevelopment ? 'Development' : 'Production');
+console.log('API URL:', apiURL);
+
+axios.defaults.baseURL = apiURL;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add request interceptor to include token
 axios.interceptors.request.use(
   (config) => {
+    // Log the request details for debugging
+    const fullUrl = config.baseURL + config.url;
+    console.log('Request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      fullUrl,
+      data: config.data,
+      headers: config.headers
+    });
+    
     const token = localStorage.getItem('access_token');
     if (token) {
       // Check token expiration before adding it
@@ -49,14 +64,30 @@ axios.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor to handle token refresh
+// Add response interceptor for error handling
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
   async (error) => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response ? {
+        data: error.response.data,
+        status: error.response.status,
+        headers: error.response.headers
+      } : null
+    });
+
     const originalRequest = error.config;
 
     // If error is 401 and we haven't tried to refresh token yet
@@ -108,3 +139,5 @@ function handleAuthError() {
     });
   }
 }
+
+export default axios;
