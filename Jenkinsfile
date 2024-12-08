@@ -139,14 +139,7 @@ pipeline {
                         mkdir -p ~/.ssh
                         chmod 700 ~/.ssh
                         
-                        echo "=== Converting and checking SSH key ==="
-                        # Convert OpenSSH to RSA format
-                        ssh-keygen -p -N "" -m PEM -f "$SSH_KEY"
-                        
-                        # Show key format
-                        head -n 1 "$SSH_KEY"
-                        
-                        # Copy and set permissions
+                        # Copy key to temp location
                         cp "$SSH_KEY" ~/.ssh/temp_key
                         chmod 600 ~/.ssh/temp_key
                         
@@ -156,16 +149,26 @@ pipeline {
                         # Add host key
                         ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts 2>/dev/null
                         
-                        echo "=== Attempting SSH connection with verbose output ==="
-                        # Try SSH connection
-                        ssh -v -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
-                            cd /root/wira-ranking-dashboard
-                            docker-compose pull
-                            docker-compose up -d
+                        echo "=== Attempting SSH connection with deployment commands ==="
+                        ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
+                            # Pull latest images
+                            docker pull 173.212.239.58:5000/frontend:latest
+                            docker pull 173.212.239.58:5000/backend:latest
+                            
+                            # Stop existing containers
+                            docker stop frontend backend || true
+                            docker rm frontend backend || true
+                            
+                            # Start new containers
+                            docker run -d --name frontend -p 80:80 173.212.239.58:5000/frontend:latest
+                            docker run -d --name backend -p 8080:8080 173.212.239.58:5000/backend:latest
+                            
+                            # Clean up old images
+                            docker image prune -f
                         '
                         
-                        # Clean up
-                        rm -f ~/.ssh/temp_key
+                        # Clean up temp key
+                        rm ~/.ssh/temp_key
                     '''
                 }
             }
