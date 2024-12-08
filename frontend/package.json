@@ -16,17 +16,17 @@
     "pinia": "2.1.6",
     "qrcode": "1.5.3",
     "qrcode.vue": "3.4.1",
-    "vue": "3.2.47",
+    "vue": "3.3.4",
     "vue-chartjs": "5.2.0",
     "vue-qrcode": "2.1.0",
     "vue-router": "4.2.4",
     "vue-toastification": "2.0.0-rc.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "4.1.0",
+    "@vitejs/plugin-vue": "4.3.0",
     "autoprefixer": "10.4.15",
     "postcss": "8.4.29",
     "tailwindcss": "3.3.3",
-    "vite": "4.3.9"
+    "vite": "4.4.9"
   }
 }
