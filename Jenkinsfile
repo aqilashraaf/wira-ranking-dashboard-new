@@ -54,6 +54,11 @@ pipeline {
                     echo "fetch-retry-factor=2" >> .npmrc
                     echo "fetch-retry-mintimeout=20000" >> .npmrc
                     echo "fetch-retry-maxtimeout=120000" >> .npmrc
+                    
+                    # Ensure Docker socket permissions
+                    if [ ! -w /var/run/docker.sock ]; then
+                        sudo chmod 666 /var/run/docker.sock || true
+                    fi
                 '''
             }
         }
@@ -102,9 +107,6 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 sh '''
-                    # Make sure jenkins can access docker
-                    sudo chmod 666 /var/run/docker.sock
-                    
                     # Build images
                     ./docker-compose build
                     docker tag wira-ranking-dashboard-new_frontend ${DOCKER_REGISTRY}/frontend:latest
