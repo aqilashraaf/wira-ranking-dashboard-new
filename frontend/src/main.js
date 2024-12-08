@@ -5,6 +5,7 @@ import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import './style.css'
 import './utils/axios'
+import 'font-awesome/css/font-awesome.min.css'
 
 const app = createApp(App)
 
@@ -21,7 +22,7 @@ const toastOptions = {
     closeButton: "button",
     icon: true,
     rtl: false
-};
+}
 
 app.use(router)
 app.use(Toast, toastOptions)
