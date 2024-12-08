@@ -135,18 +135,42 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                     sh '''#!/bin/bash
-                        # Ensure proper permissions on the SSH key
-                        chmod 600 "$SSH_KEY"
+                        # Create .ssh directory if it doesn't exist
+                        mkdir -p ~/.ssh
+                        chmod 700 ~/.ssh
                         
-                        # Add the host key to known hosts to avoid verification prompt
-                        ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts
+                        echo "=== Checking SSH key format ==="
+                        # Show only the header and footer of the key (safe to display)
+                        head -n 1 "$SSH_KEY"
+                        tail -n 1 "$SSH_KEY"
                         
-                        # Execute remote commands
-                        ssh -i "$SSH_KEY" root@173.212.239.58 '
+                        # Check if key is in valid format
+                        if ! grep -q "BEGIN.*PRIVATE KEY" "$SSH_KEY"; then
+                            echo "Error: SSH key does not appear to be in the correct format!"
+                            echo "Key should start with '-----BEGIN RSA PRIVATE KEY-----' or '-----BEGIN OPENSSH PRIVATE KEY-----'"
+                            exit 1
+                        fi
+                        
+                        # Copy the key to a temporary file with proper permissions
+                        cp "$SSH_KEY" ~/.ssh/temp_key
+                        chmod 600 ~/.ssh/temp_key
+                        
+                        echo "=== SSH key permissions ==="
+                        ls -la ~/.ssh/temp_key
+                        
+                        # Add host key
+                        ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts 2>/dev/null
+                        
+                        echo "=== Attempting SSH connection with verbose output ==="
+                        # Try SSH connection with verbose output
+                        ssh -v -i ~/.ssh/temp_key root@173.212.239.58 '
                             cd /root/wira-ranking-dashboard
                             docker-compose pull
                             docker-compose up -d
                         '
+                        
+                        # Clean up
+                        rm -f ~/.ssh/temp_key
                     '''
                 }
             }
