@@ -134,8 +134,15 @@ pipeline {
         stage('Deploy to VPS') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" root@173.212.239.58 '
+                    sh '''#!/bin/bash
+                        # Ensure proper permissions on the SSH key
+                        chmod 600 "$SSH_KEY"
+                        
+                        # Add the host key to known hosts to avoid verification prompt
+                        ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts
+                        
+                        # Execute remote commands
+                        ssh -i "$SSH_KEY" root@173.212.239.58 '
                             cd /root/wira-ranking-dashboard
                             docker-compose pull
                             docker-compose up -d
