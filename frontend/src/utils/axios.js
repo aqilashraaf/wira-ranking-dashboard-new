@@ -3,8 +3,8 @@ import router from '../router';
 
 // Configure axios defaults
 const baseURL = import.meta.env.PROD 
-  ? 'http://vmi2325708.contaboserver.net/api'  // Production URL with Nginx proxy
-  : 'http://localhost:3000';                   // Development URL
+  ? '/api'  // Production URL (relative path)
+  : 'http://localhost:3000';  // Development URL
 
 axios.defaults.baseURL = baseURL;
 
