@@ -2,7 +2,11 @@ import axios from 'axios';
 import router from '../router';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:3000';
+const baseURL = import.meta.env.PROD 
+  ? 'http://vmi2325708.contaboserver.net/api'  // Production URL with Nginx proxy
+  : 'http://localhost:3000';                   // Development URL
+
+axios.defaults.baseURL = baseURL;
 
 // Add request interceptor to include token
 axios.interceptors.request.use(
