@@ -176,6 +176,7 @@ pipeline {
                         echo "Trying with converted key..."
                         ssh -vvv -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 'echo "SSH connection successful"'
                         
+                        DEPLOY_SUCCESS=false
                         if [ $? -eq 0 ]; then
                             echo "=== Deploying containers ==="
                             ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
@@ -194,13 +195,35 @@ pipeline {
                                 # Clean up old images
                                 docker image prune -f
                             '
+                            DEPLOY_SUCCESS=true
                         fi
                         
                         # Clean up
                         rm -rf $TEMP_DIR
                         rm -f ~/.ssh/temp_key
+                        
+                        if [ "$DEPLOY_SUCCESS" != "true" ]; then
+                            echo "WARNING: Deployment failed, but build artifacts are available in the registry"
+                            echo "Latest images are tagged as 173.212.239.58:5000/frontend:latest and 173.212.239.58:5000/backend:latest"
+                        fi
                     '''
                 }
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                sh '''
+                    echo "=== Checking Frontend Health ==="
+                    curl -I http://173.212.239.58:80 || echo "Frontend health check failed"
+                    
+                    echo "=== Checking Backend Health ==="
+                    curl -I http://173.212.239.58:8080 || echo "Backend health check failed"
+                    
+                    echo "=== Application Status ==="
+                    echo "Frontend URL: http://173.212.239.58:80"
+                    echo "Backend URL: http://173.212.239.58:8080"
+                '''
             }
         }
     }
