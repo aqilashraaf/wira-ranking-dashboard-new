@@ -109,8 +109,8 @@ pipeline {
                 sh '''
                     # Build images
                     ./docker-compose build
-                    docker tag wira-ranking-dashboard-new_frontend ${DOCKER_REGISTRY}/frontend:latest
-                    docker tag wira-ranking-dashboard-new_backend ${DOCKER_REGISTRY}/backend:latest
+                    docker tag wira-ranking-pipeline-frontend ${DOCKER_REGISTRY}/frontend:latest
+                    docker tag wira-ranking-pipeline-backend ${DOCKER_REGISTRY}/backend:latest
                 '''
             }
         }

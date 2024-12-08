@@ -5,6 +5,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: wira-ranking-pipeline-frontend
     ports:
       - "80:80"
     depends_on:
@@ -14,6 +15,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: wira-ranking-pipeline-backend
     ports:
       - "8080:8080"
     depends_on:
