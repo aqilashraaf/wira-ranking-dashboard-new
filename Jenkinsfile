@@ -139,19 +139,14 @@ pipeline {
                         mkdir -p ~/.ssh
                         chmod 700 ~/.ssh
                         
-                        echo "=== Checking SSH key format ==="
-                        # Show only the header and footer of the key (safe to display)
+                        echo "=== Converting and checking SSH key ==="
+                        # Convert OpenSSH to RSA format
+                        ssh-keygen -p -N "" -m PEM -f "$SSH_KEY"
+                        
+                        # Show key format
                         head -n 1 "$SSH_KEY"
-                        tail -n 1 "$SSH_KEY"
                         
-                        # Check if key is in valid format
-                        if ! grep -q "BEGIN.*PRIVATE KEY" "$SSH_KEY"; then
-                            echo "Error: SSH key does not appear to be in the correct format!"
-                            echo "Key should start with '-----BEGIN RSA PRIVATE KEY-----' or '-----BEGIN OPENSSH PRIVATE KEY-----'"
-                            exit 1
-                        fi
-                        
-                        # Copy the key to a temporary file with proper permissions
+                        # Copy and set permissions
                         cp "$SSH_KEY" ~/.ssh/temp_key
                         chmod 600 ~/.ssh/temp_key
                         
@@ -162,8 +157,8 @@ pipeline {
                         ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts 2>/dev/null
                         
                         echo "=== Attempting SSH connection with verbose output ==="
-                        # Try SSH connection with verbose output
-                        ssh -v -i ~/.ssh/temp_key root@173.212.239.58 '
+                        # Try SSH connection
+                        ssh -v -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
                             cd /root/wira-ranking-dashboard
                             docker-compose pull
                             docker-compose up -d
