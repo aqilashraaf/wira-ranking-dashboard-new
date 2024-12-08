@@ -20,12 +20,26 @@ pipeline {
                     # Clean workspace
                     rm -rf frontend/node_modules frontend/dist backend/wira-backend
                     
-                    # Configure npm registries with fallbacks
-                    npm config set registry https://registry.npmjs.org/
-                    npm config set @vue:registry https://registry.npmjs.org/
-                    npm config set @vitejs:registry https://registry.npmjs.org/
+                    # Configure npm with multiple registries and timeouts
+                    npm config set registry https://registry.npmmirror.com/
+                    npm config set fetch-retry-mintimeout 100000
+                    npm config set fetch-retry-maxtimeout 600000
+                    npm config set fetch-timeout 600000
                     npm config set strict-ssl false
+                    
+                    # Set npm mirrors for specific scopes
+                    npm config set @vue:registry https://registry.npmmirror.com/
+                    npm config set @vitejs:registry https://registry.npmmirror.com/
+                    
+                    # Clear npm cache
                     npm cache clean --force
+                    
+                    # Create .npmrc in the workspace
+                    echo "registry=https://registry.npmmirror.com/" > .npmrc
+                    echo "strict-ssl=false" >> .npmrc
+                    echo "fetch-retry-mintimeout=100000" >> .npmrc
+                    echo "fetch-retry-maxtimeout=600000" >> .npmrc
+                    echo "fetch-timeout=600000" >> .npmrc
                 '''
             }
         }
@@ -37,8 +51,11 @@ pipeline {
                         # Clean install
                         rm -rf node_modules package-lock.json
                         
-                        # Install dependencies
-                        npm install --no-audit --no-fund --legacy-peer-deps
+                        # Copy .npmrc to frontend directory
+                        cp ../.npmrc .
+                        
+                        # Install dependencies with increased network timeout
+                        npm install --no-audit --no-fund --legacy-peer-deps --network-timeout 600000
                     '''
                 }
             }
@@ -47,7 +64,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm run build'
+                    sh 'NODE_OPTIONS="--max-old-space-size=4096" npm run build'
                 }
             }
         }
