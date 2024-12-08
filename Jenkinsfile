@@ -5,6 +5,11 @@ pipeline {
         nodejs 'NodeJS'
     }
     
+    environment {
+        NPM_CONFIG_REGISTRY = 'https://registry.npmmirror.com'
+        NPM_CONFIG_STRICT_SSL = 'false'
+    }
+    
     stages {
         stage('Checkout') {
             steps {
@@ -20,26 +25,20 @@ pipeline {
                     # Clean workspace
                     rm -rf frontend/node_modules frontend/dist backend/wira-backend
                     
-                    # Configure npm with multiple registries and timeouts
-                    npm config set registry https://registry.npmmirror.com/
-                    npm config set fetch-retry-mintimeout 100000
-                    npm config set fetch-retry-maxtimeout 600000
-                    npm config set fetch-timeout 600000
-                    npm config set strict-ssl false
-                    
-                    # Set npm mirrors for specific scopes
-                    npm config set @vue:registry https://registry.npmmirror.com/
-                    npm config set @vitejs:registry https://registry.npmmirror.com/
+                    # Create .npmrc file
+                    cat << EOF > .npmrc
+registry=https://registry.npmmirror.com/
+@vue:registry=https://registry.npmmirror.com/
+@vitejs:registry=https://registry.npmmirror.com/
+strict-ssl=false
+fetch-retries=5
+fetch-retry-factor=2
+fetch-retry-mintimeout=20000
+fetch-retry-maxtimeout=120000
+EOF
                     
                     # Clear npm cache
                     npm cache clean --force
-                    
-                    # Create .npmrc in the workspace
-                    echo "registry=https://registry.npmmirror.com/" > .npmrc
-                    echo "strict-ssl=false" >> .npmrc
-                    echo "fetch-retry-mintimeout=100000" >> .npmrc
-                    echo "fetch-retry-maxtimeout=600000" >> .npmrc
-                    echo "fetch-timeout=600000" >> .npmrc
                 '''
             }
         }
@@ -54,8 +53,9 @@ pipeline {
                         # Copy .npmrc to frontend directory
                         cp ../.npmrc .
                         
-                        # Install dependencies with increased network timeout
-                        npm install --no-audit --no-fund --legacy-peer-deps --network-timeout 600000
+                        # Install dependencies
+                        export NODE_OPTIONS="--max-old-space-size=4096"
+                        npm install --prefer-offline --no-audit --no-fund --legacy-peer-deps
                     '''
                 }
             }
@@ -64,7 +64,10 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'NODE_OPTIONS="--max-old-space-size=4096" npm run build'
+                    sh '''
+                        export NODE_OPTIONS="--max-old-space-size=4096"
+                        npm run build
+                    '''
                 }
             }
         }
