@@ -1,22 +1,20 @@
 pipeline {
     agent any
     
-    tools {
-        nodejs 'NodeJS'
+    environment {
+        DOCKER_CREDENTIALS = credentials('docker-registry-credentials')
+        SSH_CREDENTIALS = credentials('vps-ssh-key')
     }
     
-    environment {
-        NPM_CONFIG_REGISTRY = 'https://registry.npmmirror.com'
-        NPM_CONFIG_STRICT_SSL = 'false'
-        DOCKER_REGISTRY = '173.212.239.58:5000'
-        DOCKER_CREDENTIALS = credentials('docker-credentials')
-        SSH_CREDENTIALS = credentials('vps-ssh-key')
+    tools {
+        nodejs 'NodeJS'
     }
     
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', 
+                tool name: 'Default'
+                git branch: 'main',
                     url: 'https://github.com/aqilashraaf/wira-ranking-dashboard-new.git',
                     credentialsId: 'github-pat'
             }
@@ -117,8 +115,8 @@ pipeline {
             steps {
                 sh '''
                     ./docker-compose build
-                    docker tag wira-ranking-pipeline-frontend ${DOCKER_REGISTRY}/frontend:latest
-                    docker tag wira-ranking-pipeline-backend ${DOCKER_REGISTRY}/backend:latest
+                    docker tag wira-ranking-pipeline-frontend 173.212.239.58:5000/frontend:latest
+                    docker tag wira-ranking-pipeline-backend 173.212.239.58:5000/backend:latest
                 '''
             }
         }
@@ -126,37 +124,37 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 sh '''
-                    echo $DOCKER_CREDENTIALS_PSW | docker login ${DOCKER_REGISTRY} -u $DOCKER_CREDENTIALS_USR --password-stdin
-                    docker push ${DOCKER_REGISTRY}/frontend:latest
-                    docker push ${DOCKER_REGISTRY}/backend:latest
+                    echo $DOCKER_CREDENTIALS_PSW | docker login 173.212.239.58:5000 -u $DOCKER_CREDENTIALS_USR --password-stdin
+                    docker push 173.212.239.58:5000/frontend:latest
+                    docker push 173.212.239.58:5000/backend:latest
                 '''
             }
         }
         
         stage('Deploy to VPS') {
             steps {
-                sshagent(['vps-ssh-key']) {
-                    sh '''
-                        # Copy docker-compose file to VPS
-                        scp -o StrictHostKeyChecking=no docker-compose.yml root@173.212.239.58:/opt/wira-ranking/
-                        
-                        # Update Docker Compose on VPS and deploy
-                        ssh -o StrictHostKeyChecking=no root@173.212.239.58 "
-                            cd /opt/wira-ranking
-                            curl -L 'https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)' -o docker-compose
-                            chmod +x docker-compose
-                            ./docker-compose pull
-                            ./docker-compose up -d
-                        "
-                    '''
-                }
+                sh '''
+                    # Write the SSH key to a temporary file
+                    echo "$SSH_CREDENTIALS" > ssh_key.pem
+                    chmod 600 ssh_key.pem
+                    
+                    # Deploy using SSH
+                    ssh -o StrictHostKeyChecking=no -i ssh_key.pem root@173.212.239.58 '
+                        cd /root/wira-ranking-dashboard
+                        docker-compose pull
+                        docker-compose up -d
+                    '
+                    
+                    # Clean up
+                    rm -f ssh_key.pem
+                '''
             }
         }
     }
     
     post {
         always {
-            sh 'docker logout ${DOCKER_REGISTRY}'
+            sh 'docker logout 173.212.239.58:5000'
             cleanWs()
         }
     }
