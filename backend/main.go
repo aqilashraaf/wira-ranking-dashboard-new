@@ -48,6 +48,11 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
+	// Seed initial data
+	if err := db.SeedData(database); err != nil {
+		log.Printf("Warning: Failed to seed data: %v", err)
+	}
+
 	// Log all routes during startup
 	log.Println("Registering routes...")
 	routes.SetupRoutes(r, database)

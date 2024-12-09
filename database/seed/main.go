@@ -5,18 +5,17 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/joho/godotenv"
 )
 
 const (
-	host     = "localhost"
-	port     = 5433
-	user     = "postgres"
-	dbname   = "wira_dashboard"
-	numUsers = 5000  // This will generate 100,000+ total records due to multiple characters per user
+	defaultNumUsers = 5000 // This will generate 100,000+ total records due to multiple characters per user
 )
 
 // Malay warrior-themed name prefixes and suffixes
@@ -38,11 +37,49 @@ func generateMalayWarriorName() string {
 }
 
 func main() {
+	// Load .env file if it exists
+	_ = godotenv.Load()
+
 	// Set random seed
 	rand.Seed(time.Now().UnixNano())
 
+	// Get database configuration from environment variables
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+	
+	port := os.Getenv("DB_PORT")
+	if port == "" {
+		port = "5434"
+	}
+	
+	user := os.Getenv("DB_USER")
+	if user == "" {
+		user = "postgres"
+	}
+	
+	password := os.Getenv("DB_PASSWORD")
+	if password == "" {
+		password = "aqash18"
+	}
+	
+	dbname := os.Getenv("DB_NAME")
+	if dbname == "" {
+		dbname = "wira_dashboard"
+	}
+
+	// Get number of users to generate from environment variable
+	numUsers := defaultNumUsers
+	if envNumUsers := os.Getenv("SEED_NUM_USERS"); envNumUsers != "" {
+		if n, err := strconv.Atoi(envNumUsers); err == nil {
+			numUsers = n
+		}
+	}
+
 	// Connect to database
-	psqlInfo := fmt.Sprintf("postgresql://postgres:aqash18@localhost:5433/wira_dashboard?sslmode=disable")
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 	
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
@@ -66,8 +103,8 @@ func main() {
 
 	// Prepare statements
 	stmtAccount, err := tx.Prepare(`
-		INSERT INTO accounts (username, email) 
-		VALUES ($1, $2) 
+		INSERT INTO accounts (username) 
+		VALUES ($1) 
 		RETURNING acc_id`)
 	if err != nil {
 		log.Fatal(err)
@@ -92,10 +129,9 @@ func main() {
 	for i := 0; i < numUsers; i++ {
 		// Generate account
 		username := generateMalayWarriorName()
-		email := strings.ToLower(username) + "@wira.com"
 		
 		var accID int
-		err = stmtAccount.QueryRow(username, email).Scan(&accID)
+		err = stmtAccount.QueryRow(username).Scan(&accID)
 		if err != nil {
 			tx.Rollback()
 			log.Fatal(err)
@@ -104,8 +140,8 @@ func main() {
 		// Generate 3-8 characters per account
 		numCharacters := rand.Intn(6) + 3
 		for j := 0; j < numCharacters; j++ {
-			// Generate character
-			classID := rand.Intn(8) + 1
+			// Generate character with class_id between 0-8
+			classID := rand.Intn(9)
 			var charID int
 			err = stmtCharacter.QueryRow(accID, classID).Scan(&charID)
 			if err != nil {

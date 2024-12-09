@@ -35,8 +35,25 @@ services:
       - POSTGRES_DB=wira_dashboard
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
     ports:
-      - "5434:5432"
+      - "5435:5432"
+    networks:
+      - wira-network
+
+  seeder:
+    build:
+      context: ./database/seed
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=aqash18
+      - DB_NAME=wira_dashboard
+      - SEED_NUM_USERS=100
+    depends_on:
+      - db
     networks:
       - wira-network
 
