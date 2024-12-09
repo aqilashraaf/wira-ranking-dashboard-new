@@ -26,6 +26,7 @@ func main() {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{
 		"http://173.212.239.58",
+		"http://173.212.239.58:3001",
 		"http://localhost:5173",
 		"http://localhost:5180",
 	}

@@ -5,7 +5,7 @@ import router from '../router';
 const isDevelopment = import.meta.env.DEV;
 const apiURL = isDevelopment
   ? 'http://localhost:3000'
-  : 'http://173.212.239.58/api';
+  : 'http://173.212.239.58:8081';
 
 console.log('Environment:', isDevelopment ? 'Development' : 'Production');
 console.log('API URL:', apiURL);
@@ -115,7 +115,7 @@ async function refreshAccessToken() {
       throw new Error('No refresh token available');
     }
 
-    const response = await axios.post('/api/auth/refresh', {
+    const response = await axios.post('/auth/refresh', {
       refresh_token: refreshToken
     });
 
