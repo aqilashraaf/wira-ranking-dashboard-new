@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     image: 173.212.239.58:5000/frontend:latest
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - backend
     networks:

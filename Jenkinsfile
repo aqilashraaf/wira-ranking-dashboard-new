@@ -82,10 +82,10 @@ pipeline {
                             # Deploy on VPS
                             ssh -o StrictHostKeyChecking=no root@173.212.239.58 "cd /root/wira-dashboard && \
                                 docker login 173.212.239.58:5000 && \
-                                docker-compose pull && \
                                 docker-compose down --remove-orphans && \
-                                docker-compose up -d && \
-                                docker system prune -f"
+                                docker system prune -f && \
+                                docker-compose pull && \
+                                docker-compose up -d"
                                 
                             # Clean up SSH key
                             rm -f ~/.ssh/id_rsa
