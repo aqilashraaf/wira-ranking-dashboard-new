@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"strings"
 
 	_ "github.com/lib/pq"
 	"github.com/joho/godotenv"
@@ -36,9 +37,8 @@ func generateMalayWarriorName() (string, string) {
 	uniqueNum := rand.Intn(9999)
 	username := fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
 	
-	// Generate email using lowercase username without special characters
-	emailName := strings.ToLower(strings.ReplaceAll(username, "_", ""))
-	email := fmt.Sprintf("%s@%s", emailName, emailDomains[rand.Intn(len(emailDomains))])
+	// Generate email using the username
+	email := fmt.Sprintf("%s@wira.com", strings.ToLower(username))
 	
 	return username, email
 }
@@ -110,23 +110,23 @@ func main() {
 
 	// Prepare statements
 	stmtAccount, err := tx.Prepare(`
-		INSERT INTO accounts (username, email) 
-		VALUES ($1, $2) 
+		INSERT INTO accounts (username, email)
+		VALUES ($1, $2)
 		RETURNING acc_id`)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	stmtCharacter, err := tx.Prepare(`
-		INSERT INTO characters (acc_id, class_id) 
-		VALUES ($1, $2) 
+		INSERT INTO characters (acc_id, class_id)
+		VALUES ($1, $2)
 		RETURNING char_id`)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	stmtScore, err := tx.Prepare(`
-		INSERT INTO scores (char_id, reward_score) 
+		INSERT INTO scores (char_id, reward_score)
 		VALUES ($1, $2)`)
 	if err != nil {
 		log.Fatal(err)
