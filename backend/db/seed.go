@@ -28,6 +28,8 @@ var (
 	malayTitles = []string{
 		"Pendekar", "Hulubalang", "Laksamana", "Panglima", "Satria", "Wira", "Kesatria", "Pahlawan", "Perwira", "Jaguh",
 	}
+
+	characterClasses = []int{1, 2, 3, 4, 5, 6, 7, 8}
 )
 
 func generateUniqueName() string {
@@ -103,8 +105,8 @@ func SeedData(db *sql.DB) error {
 		// Generate 3-8 characters per account
 		numCharacters := rand.Intn(6) + 3
 		for j := 0; j < numCharacters; j++ {
-			// Generate character with class_id between 0-8
-			classID := rand.Intn(9)
+			// Generate character with class_id between 1-8
+			classID := characterClasses[rand.Intn(len(characterClasses))]
 			var charID int
 			err = stmtCharacter.QueryRow(accID, classID).Scan(&charID)
 			if err != nil {

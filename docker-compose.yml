@@ -5,9 +5,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: 173.212.239.58:5000/frontend:latest
-    ports:
-      - "3001:80"
     depends_on:
       - backend
     networks:
@@ -15,17 +12,18 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    image: 173.212.239.58:5000/backend:latest
-    ports:
-      - "8081:8080"
+      context: .
+      dockerfile: backend/Dockerfile
     depends_on:
       - db
-    env_file:
-      - ./backend/.env
     environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=aqash18
+      - DB_NAME=wira_dashboard
       - SEED_NUM_USERS=5000
+    command: ["./wait-for-postgres.sh", "db", "./main"]
     networks:
       - wira-network
 
@@ -38,8 +36,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
-    ports:
-      - "5435:5432"
+    networks:
+      - wira-network
+
+  seeder:
+    build:
+      context: .
+      dockerfile: database/seed/Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=aqash18
+      - DB_NAME=wira_dashboard
+      - SEED_NUM_USERS=5000
+    depends_on:
+      - db
+    command: ["./wait-for-postgres.sh", "db", "./seed"]
     networks:
       - wira-network
 

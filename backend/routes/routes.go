@@ -23,6 +23,14 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 			auth.POST("/refresh", authHandler.RefreshToken)
 		}
 
+		// Public rankings endpoints
+		rankings := api.Group("/rankings")
+		{
+			rankings.GET("", rankingHandler.GetRankings)
+			rankings.GET("/search", rankingHandler.SearchRankings)
+			rankings.GET("/stats", rankingHandler.GetRankingStats)
+		}
+
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
@@ -43,22 +51,11 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 				twoFA.POST("/enable", authHandler.Enable2FA)
 				twoFA.POST("/disable", authHandler.Disable2FA)
 			}
-
-			// Rankings endpoints (now protected)
-			rankings := protected.Group("/rankings")
-			{
-				rankings.GET("", rankingHandler.GetRankings)
-				rankings.GET("/search", rankingHandler.SearchRankings)
-				rankings.GET("/stats", rankingHandler.GetClassStats)
-			}
 		}
 
 		// Health check endpoint
 		api.GET("/health", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status": "ok",
-				"message": "WIRA Ranking API is running",
-			})
+			c.JSON(200, gin.H{"status": "ok"})
 		})
 	}
 }
