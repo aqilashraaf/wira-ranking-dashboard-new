@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -22,9 +23,10 @@ var (
 	malayPrefixes = []string{"Hang", "Laksamana", "Tun", "Datuk", "Panglima", "Raja", "Sultan"}
 	malayNames    = []string{"Tuah", "Jebat", "Lekir", "Kasturi", "Lekiu", "Pahang", "Melaka", "Perang"}
 	malayTitles   = []string{"Perkasa", "Wira", "Pahlawan", "Sakti", "Gagah", "Berani"}
+	emailDomains  = []string{"gmail.com", "yahoo.com", "hotmail.com", "outlook.com"}
 )
 
-func generateMalayWarriorName() string {
+func generateMalayWarriorName() (string, string) {
 	prefix := malayPrefixes[rand.Intn(len(malayPrefixes))]
 	name := malayNames[rand.Intn(len(malayNames))]
 	title := malayTitles[rand.Intn(len(malayTitles))]
@@ -32,7 +34,13 @@ func generateMalayWarriorName() string {
 	// Add timestamp and random number to ensure uniqueness
 	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 	uniqueNum := rand.Intn(9999)
-	return fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
+	username := fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
+	
+	// Generate email using lowercase username without special characters
+	emailName := strings.ToLower(strings.ReplaceAll(username, "_", ""))
+	email := fmt.Sprintf("%s@%s", emailName, emailDomains[rand.Intn(len(emailDomains))])
+	
+	return username, email
 }
 
 func main() {
@@ -102,8 +110,8 @@ func main() {
 
 	// Prepare statements
 	stmtAccount, err := tx.Prepare(`
-		INSERT INTO accounts (username) 
-		VALUES ($1) 
+		INSERT INTO accounts (username, email) 
+		VALUES ($1, $2) 
 		RETURNING acc_id`)
 	if err != nil {
 		log.Fatal(err)
@@ -127,10 +135,10 @@ func main() {
 	// Generate data
 	for i := 0; i < numUsers; i++ {
 		// Generate account
-		username := generateMalayWarriorName()
+		username, email := generateMalayWarriorName()
 		
 		var accID int
-		err = stmtAccount.QueryRow(username).Scan(&accID)
+		err = stmtAccount.QueryRow(username, email).Scan(&accID)
 		if err != nil {
 			tx.Rollback()
 			log.Fatal(err)
@@ -139,8 +147,8 @@ func main() {
 		// Generate 3-8 characters per account
 		numCharacters := rand.Intn(6) + 3
 		for j := 0; j < numCharacters; j++ {
-			// Generate character with class_id between 0-8
-			classID := rand.Intn(9)
+			// Generate character with class_id between 1-8 (not 0)
+			classID := rand.Intn(8) + 1
 			var charID int
 			err = stmtCharacter.QueryRow(accID, classID).Scan(&charID)
 			if err != nil {
