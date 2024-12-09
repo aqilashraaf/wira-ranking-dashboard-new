@@ -2,17 +2,21 @@ FROM golang:1.21-alpine
 
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
+# Copy go mod and sum files from seeder directory
+COPY database/seed/go.mod database/seed/go.sum ./
 
-# Download dependencies and verify modules
-RUN go mod download && go mod verify
+# Download all dependencies
+RUN go mod download
 
-# Copy source code
-COPY . .
+# Copy the source code
+COPY database/seed/ .
+
+# Copy the wait-for-postgres script
+COPY wait-for-postgres.sh /wait-for-postgres.sh
+RUN chmod +x /wait-for-postgres.sh
 
 # Build the application
-RUN go mod tidy && go build -o seed
+RUN go build -o seed .
 
-# Run the seeder
+# Command to run
 CMD ["./seed"]
