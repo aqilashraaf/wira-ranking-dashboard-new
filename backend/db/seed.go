@@ -48,11 +48,13 @@ func SeedData(db *sql.DB) error {
 	rand.Seed(time.Now().UnixNano())
 
 	// Get number of users to generate from environment variable
-	numUsers := defaultNumUsers
-	if envNumUsers := os.Getenv("SEED_NUM_USERS"); envNumUsers != "" {
-		if n, err := strconv.Atoi(envNumUsers); err == nil {
-			numUsers = n
-		}
+	numUsers := os.Getenv("SEED_NUM_USERS")
+	if numUsers == "" {
+		numUsers = strconv.Itoa(defaultNumUsers)
+	}
+	n, err := strconv.Atoi(numUsers)
+	if err != nil {
+		return err
 	}
 
 	// Begin transaction
@@ -86,7 +88,7 @@ func SeedData(db *sql.DB) error {
 	}
 
 	// Generate data
-	for i := 0; i < numUsers; i++ {
+	for i := 0; i < n; i++ {
 		// Generate account
 		username := generateUniqueName()
 		email := generateEmail(username)
@@ -140,8 +142,8 @@ func SeedData(db *sql.DB) error {
 
 	log.Printf("Data generation completed successfully!\n")
 	log.Printf("Generated:\n- %d users\n- ~%d characters\n- ~%d scores\n",
-		numUsers,
-		numUsers*5, // average 5 characters per user
-		numUsers*5*7) // average 7 scores per character
+		n,
+		n*5, // average 5 characters per user
+		n*5*7) // average 7 scores per character
 	return nil
 }
