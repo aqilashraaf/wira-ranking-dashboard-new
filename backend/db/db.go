@@ -40,6 +40,12 @@ func InitDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("error creating auth tables: %v", err)
 	}
 
+	// Create ranking tables if they don't exist
+	err = createRankingTables(db)
+	if err != nil {
+		return nil, fmt.Errorf("error creating ranking tables: %v", err)
+	}
+
 	log.Println("Successfully connected to database")
 	return db, nil
 }
@@ -87,5 +93,37 @@ func createAuthTables(db *sql.DB) error {
 	}
 
 	log.Println("Successfully created auth tables")
+	return nil
+}
+
+func createRankingTables(db *sql.DB) error {
+	queries := []string{
+		`CREATE TABLE IF NOT EXISTS accounts (
+			acc_id SERIAL PRIMARY KEY,
+			username VARCHAR(255) UNIQUE NOT NULL,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS characters (
+			char_id SERIAL PRIMARY KEY,
+			acc_id INTEGER REFERENCES accounts(acc_id) ON DELETE CASCADE,
+			class_id INTEGER NOT NULL CHECK (class_id >= 0 AND class_id <= 8),
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS scores (
+			score_id SERIAL PRIMARY KEY,
+			char_id INTEGER REFERENCES characters(char_id) ON DELETE CASCADE,
+			reward_score INTEGER NOT NULL DEFAULT 0,
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		)`,
+	}
+
+	for _, query := range queries {
+		_, err := db.Exec(query)
+		if err != nil {
+			return fmt.Errorf("error executing query: %v\nQuery: %s", err, query)
+		}
+	}
+
+	log.Println("Successfully created ranking tables")
 	return nil
 }
