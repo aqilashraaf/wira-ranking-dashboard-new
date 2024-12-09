@@ -5,7 +5,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: wira-ranking-pipeline-frontend
+    image: 173.212.239.58:5000/frontend:latest
     ports:
       - "3000:80"
     depends_on:
@@ -17,17 +17,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: wira-ranking-pipeline-backend
+    image: 173.212.239.58:5000/backend:latest
     ports:
       - "8081:8080"
     depends_on:
       - db
-    environment:
-      - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=aqash18
-      - DB_NAME=wira_dashboard
-      - DB_PORT=5432
+    env_file:
+      - ./backend/.env
     networks:
       - wira-network
 
@@ -40,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     networks:
       - wira-network
 

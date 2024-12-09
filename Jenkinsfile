@@ -133,129 +133,30 @@ pipeline {
         
         stage('Deploy to VPS') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                    sh '''#!/bin/bash
-                        set -x
-                        # Create .ssh directory if it doesn't exist
-                        mkdir -p ~/.ssh
-                        chmod 700 ~/.ssh
-                        
-                        echo "=== Checking SSH key format ==="
-                        # Create a temporary directory for key operations
-                        TEMP_DIR=$(mktemp -d)
-                        cp "$SSH_KEY" $TEMP_DIR/original_key
-                        chmod 600 $TEMP_DIR/original_key
-                        
-                        # Display key format
-                        echo "Original key format:"
-                        head -n 1 $TEMP_DIR/original_key
-                        
-                        # Try to convert key to PEM format
-                        echo "Converting key to PEM format..."
-                        cp $TEMP_DIR/original_key $TEMP_DIR/converted_key
-                        ssh-keygen -p -N "" -m PEM -f $TEMP_DIR/converted_key || true
-                        
-                        # Copy the converted key
-                        cp $TEMP_DIR/converted_key ~/.ssh/temp_key
-                        chmod 600 ~/.ssh/temp_key
-                        
-                        echo "=== SSH key permissions ==="
-                        ls -la ~/.ssh/temp_key
-                        
-                        echo "=== SSH debug info ==="
-                        ssh-keygen -l -f ~/.ssh/temp_key || true
-                        
-                        # Add host key
-                        ssh-keyscan -H 173.212.239.58 >> ~/.ssh/known_hosts 2>/dev/null
-                        
-                        echo "=== Testing SSH connection ==="
-                        # Try both the original and converted keys
-                        echo "Trying with original key..."
-                        ssh -vvv -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $TEMP_DIR/original_key root@173.212.239.58 'echo "SSH connection successful"' || true
-                        
-                        echo "Trying with converted key..."
-                        ssh -vvv -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 'echo "SSH connection successful"'
-                        
-                        DEPLOY_SUCCESS=false
-                        if [ $? -eq 0 ]; then
-                            echo "=== Deploying containers ==="
-                            ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
-                                # Install nginx if not installed
-                                apt-get update
-                                apt-get install -y nginx
-
-                                # Set up nginx configuration
-                                mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-
-                                # Create nginx configuration
-                                cat > /etc/nginx/sites-available/wira-dashboard << "EOF"
-server {
-    listen 80;
-    server_name 173.212.239.58;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:8081/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-EOF
-
-                                # Enable the site
-                                ln -sf /etc/nginx/sites-available/wira-dashboard /etc/nginx/sites-enabled/
-                                rm -f /etc/nginx/sites-enabled/default
-
-                                # Test nginx configuration
-                                nginx -t
-
-                                # Pull latest images
-                                docker pull 173.212.239.58:5000/frontend:latest
-                                docker pull 173.212.239.58:5000/backend:latest
-                                
-                                # Stop existing containers
-                                docker stop frontend backend || true
-                                docker rm frontend backend || true
-                                
-                                # Start new containers
-                                docker run -d --name frontend -p 3000:80 173.212.239.58:5000/frontend:latest
-                                docker run -d --name backend -p 8081:8080 \
-                                    -e DB_HOST=173.212.239.58 \
-                                    -e DB_PORT=5432 \
-                                    -e DB_USER=postgres \
-                                    -e DB_PASSWORD=aqash18 \
-                                    -e DB_NAME=wira_dashboard \
-                                    173.212.239.58:5000/backend:latest
-                                
-                                # Clean up old images
-                                docker image prune -f
-
-                                # Restart nginx
-                                systemctl restart nginx
-                            '
-                            DEPLOY_SUCCESS=true
-                        fi
-                        
-                        # Clean up
-                        rm -rf $TEMP_DIR
-                        rm -f ~/.ssh/temp_key
-                        
-                        if [ "$DEPLOY_SUCCESS" != "true" ]; then
-                            echo "WARNING: Deployment failed, but build artifacts are available in the registry"
-                            echo "Latest images are tagged as 173.212.239.58:5000/frontend:latest and 173.212.239.58:5000/backend:latest"
-                        fi
+                script {
+                    // Create production environment file
+                    sh '''
+                        echo "Creating production environment file..."
+                        cat > backend/.env << EOL
+DB_HOST=postgres
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=aqash18
+DB_NAME=wira_dashboard
+EOL
                     '''
+                    
+                    // Deploy using docker-compose
+                    sshagent(['vps-ssh-key']) {
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no root@173.212.239.58 << EOL
+                            cd /root/wira-dashboard
+                            docker-compose down
+                            docker-compose pull
+                            docker-compose up -d
+                            EOL
+                        '''
+                    }
                 }
             }
         }
