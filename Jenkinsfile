@@ -71,10 +71,11 @@ pipeline {
                             cp "$SSH_KEY" ~/.ssh/id_rsa
                             chmod 600 ~/.ssh/id_rsa
                             
-                            # Create deployment directory on VPS
+                            # Create necessary directories on VPS
                             ssh -o StrictHostKeyChecking=no root@173.212.239.58 'mkdir -p /root/wira-dashboard'
+                            ssh -o StrictHostKeyChecking=no root@173.212.239.58 'mkdir -p /root/wira-dashboard/backend'
                             
-                            # Copy docker-compose and env files
+                            # Copy files to VPS
                             scp -o StrictHostKeyChecking=no docker-compose.yml root@173.212.239.58:/root/wira-dashboard/
                             scp -o StrictHostKeyChecking=no backend/.env.production root@173.212.239.58:/root/wira-dashboard/backend/.env
                             
