@@ -28,7 +28,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 		{
 			rankings.GET("", rankingHandler.GetRankings)
 			rankings.GET("/search", rankingHandler.SearchRankings)
-			rankings.GET("/stats", rankingHandler.GetRankingStats)
+			rankings.GET("/stats", rankingHandler.GetClassStats)
 		}
 
 		// Protected routes
