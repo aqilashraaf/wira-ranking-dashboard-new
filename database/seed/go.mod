@@ -1,6 +1,6 @@
 module wira-dashboard/seed
 
-go 1.23.4
+go 1.21
 
 require (
 	github.com/bxcodec/faker/v3 v3.8.1
