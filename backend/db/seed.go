@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,31 +15,36 @@ const (
 	defaultNumUsers = 5000 // This will generate 100,000+ total records due to multiple characters per user
 )
 
-// Malay warrior-themed name prefixes and suffixes
 var (
-	malayPrefixes = []string{"Hang", "Laksamana", "Tun", "Datuk", "Panglima", "Raja", "Sultan"}
-	malayNames    = []string{"Tuah", "Jebat", "Lekir", "Kasturi", "Lekiu", "Pahang", "Melaka", "Perang"}
-	malayTitles   = []string{"Perkasa", "Wira", "Pahlawan", "Sakti", "Gagah", "Berani"}
+	malayPrefixes = []string{
+		"Sang", "Si", "Tun", "Tok", "Megat", "Nik", "Wan", "Raja", "Putera", "Awang",
+	}
+
+	malayNames = []string{
+		"Tuah", "Jebat", "Lekir", "Lekiu", "Kasturi", "Setia", "Perkasa", "Pahlawan", "Laksamana", "Hulubalang",
+		"Satria", "Wira", "Kesuma", "Sakti", "Gagah", "Berani", "Laksana", "Andika", "Mahkota", "Bijaksana",
+	}
+
+	malayTitles = []string{
+		"Pendekar", "Hulubalang", "Laksamana", "Panglima", "Satria", "Wira", "Kesatria", "Pahlawan", "Perwira", "Jaguh",
+	}
 )
 
-func generateMalayWarriorName() string {
+func generateUniqueName() string {
 	prefix := malayPrefixes[rand.Intn(len(malayPrefixes))]
 	name := malayNames[rand.Intn(len(malayNames))]
 	title := malayTitles[rand.Intn(len(malayTitles))]
-	
-	// Add timestamp and random number to ensure uniqueness
-	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
-	uniqueNum := rand.Intn(9999)
-	return fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
+	return fmt.Sprintf("%s %s %s", prefix, name, title)
 }
 
 func generateEmail(username string) string {
-	return fmt.Sprintf("%s@wira-ranking.com", username)
+	// Replace spaces with dots and make lowercase
+	email := strings.ToLower(strings.ReplaceAll(username, " ", "."))
+	return fmt.Sprintf("%s@wira-ranking.com", email)
 }
 
 // SeedData seeds initial data into the database
 func SeedData(db *sql.DB) error {
-	// Set random seed
 	rand.Seed(time.Now().UnixNano())
 
 	// Get number of users to generate from environment variable
@@ -82,7 +88,7 @@ func SeedData(db *sql.DB) error {
 	// Generate data
 	for i := 0; i < numUsers; i++ {
 		// Generate account
-		username := generateMalayWarriorName()
+		username := generateUniqueName()
 		email := generateEmail(username)
 		
 		var accID int

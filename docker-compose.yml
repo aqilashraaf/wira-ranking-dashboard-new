@@ -41,22 +41,6 @@ services:
     networks:
       - wira-network
 
-  seeder:
-    build:
-      context: ./database/seed
-      dockerfile: Dockerfile
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=aqash18
-      - DB_NAME=wira_dashboard
-      - SEED_NUM_USERS=5000
-    depends_on:
-      - db
-    networks:
-      - wira-network
-
 volumes:
   postgres_data:
 
