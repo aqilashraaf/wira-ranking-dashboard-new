@@ -1,5 +1,8 @@
 FROM golang:1.21-alpine
 
+# Install PostgreSQL client
+RUN apk add --no-cache postgresql-client
+
 WORKDIR /app
 
 # Copy go mod and sum files from seeder directory
@@ -12,11 +15,11 @@ RUN go mod download
 COPY database/seed/ .
 
 # Copy the wait-for-postgres script
-COPY wait-for-postgres.sh /wait-for-postgres.sh
-RUN chmod +x /wait-for-postgres.sh
+COPY wait-for-postgres.sh ./wait-for-postgres.sh
+RUN chmod +x ./wait-for-postgres.sh
 
 # Build the application
 RUN go build -o seed .
 
 # Command to run
-CMD ["./seed"]
+CMD ["./wait-for-postgres.sh", "db", "./seed"]
