@@ -1,20 +1,16 @@
 #!/bin/bash
 
-# Install required packages if not present
+# Install required packages
 apt-get update
-apt-get install -y nginx docker.io docker-compose unzip
+apt-get install -y nginx docker.io docker-compose git
 
-# Create project directory
-mkdir -p /root/wira-ranking-dashboard-new
-cd /root/wira-ranking-dashboard-new
+# Clone the repository
+cd /root
+rm -rf wira-ranking-dashboard-new
+git clone https://github.com/aqilashraaf/wira-ranking-dashboard-new.git
+cd wira-ranking-dashboard-new
 
-# Unzip deployment package
-unzip -o /root/deploy.zip
-
-# Copy necessary files
-cp -r /root/jenkins/workspace/wira-ranking-pipeline/* .
-
-# Create nginx directory and configuration
+# Set up nginx
 mkdir -p /etc/nginx/sites-available
 mkdir -p /etc/nginx/sites-enabled
 
@@ -24,9 +20,6 @@ ln -sf /etc/nginx/sites-available/wira-dashboard /etc/nginx/sites-enabled/
 
 # Remove default nginx site if it exists
 rm -f /etc/nginx/sites-enabled/default
-
-# Create frontend directory
-mkdir -p /var/www/wira-dashboard
 
 # Start the services
 docker-compose down || true

@@ -84,7 +84,19 @@ export default {
         });
         console.log('Login response:', response.data);
         
-        // Store tokens and redirect
+        // Check if 2FA is required
+        if (response.data.requires_2fa) {
+          console.log('2FA required, showing prompt...');
+          requires2FA.value = true;
+          loginCredentials.value = {
+            username: username.value,
+            password: password.value
+          };
+          toast.info('Please enter your 2FA code');
+          return;
+        }
+        
+        // If no 2FA required, proceed with login
         localStorage.setItem('access_token', response.data.access_token);
         localStorage.setItem('refresh_token', response.data.refresh_token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
@@ -93,20 +105,7 @@ export default {
         
       } catch (error) {
         console.log('Login error response:', error.response?.data);
-        
-        // Check if 2FA is required
-        if (error.response?.data?.requires_2fa) {
-          console.log('2FA required, showing prompt...');
-          requires2FA.value = true;
-          loginCredentials.value = {
-            username: username.value,
-            password: password.value
-          };
-          toast.info('Please enter your 2FA code');
-        } else {
-          // Handle other errors
-          toast.error(error.response?.data?.error || 'Login failed');
-        }
+        toast.error(error.response?.data?.error || 'Login failed');
       }
     };
 

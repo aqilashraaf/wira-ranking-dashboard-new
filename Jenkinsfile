@@ -180,6 +180,46 @@ pipeline {
                         if [ $? -eq 0 ]; then
                             echo "=== Deploying containers ==="
                             ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i ~/.ssh/temp_key root@173.212.239.58 '
+                                # Install nginx if not installed
+                                apt-get update
+                                apt-get install -y nginx
+
+                                # Set up nginx configuration
+                                mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+
+                                # Create nginx configuration
+                                cat > /etc/nginx/sites-available/wira-dashboard << "EOF"
+server {
+    listen 80;
+    server_name 173.212.239.58;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8081/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
+
+                                # Enable the site
+                                ln -sf /etc/nginx/sites-available/wira-dashboard /etc/nginx/sites-enabled/
+                                rm -f /etc/nginx/sites-enabled/default
+
+                                # Test nginx configuration
+                                nginx -t
+
                                 # Pull latest images
                                 docker pull 173.212.239.58:5000/frontend:latest
                                 docker pull 173.212.239.58:5000/backend:latest
@@ -190,10 +230,19 @@ pipeline {
                                 
                                 # Start new containers
                                 docker run -d --name frontend -p 3000:80 173.212.239.58:5000/frontend:latest
-                                docker run -d --name backend -p 8081:8080 173.212.239.58:5000/backend:latest
+                                docker run -d --name backend -p 8081:8080 \
+                                    -e DB_HOST=173.212.239.58 \
+                                    -e DB_PORT=5432 \
+                                    -e DB_USER=postgres \
+                                    -e DB_PASSWORD=aqash18 \
+                                    -e DB_NAME=wira_dashboard \
+                                    173.212.239.58:5000/backend:latest
                                 
                                 # Clean up old images
                                 docker image prune -f
+
+                                # Restart nginx
+                                systemctl restart nginx
                             '
                             DEPLOY_SUCCESS=true
                         fi

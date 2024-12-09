@@ -4,12 +4,18 @@ import (
 	"log"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"wira-dashboard/db"
 	"wira-dashboard/routes"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found")
+	}
+
 	// Set Gin to Release mode
 	gin.SetMode(gin.ReleaseMode)
 
@@ -18,7 +24,11 @@ func main() {
 
 	// CORS configuration
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://173.212.239.58", "http://localhost:5173"}
+	config.AllowOrigins = []string{
+		"http://173.212.239.58",
+		"http://localhost:5173",
+		"http://localhost:5180",
+	}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	config.ExposeHeaders = []string{"Content-Length"}
