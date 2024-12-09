@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/joho/godotenv"
@@ -48,9 +49,11 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Seed initial data
-	if err := db.SeedData(database); err != nil {
-		log.Printf("Warning: Failed to seed data: %v", err)
+	// Only seed if SEED_NUM_USERS is not set (meaning we're not running with the seeder service)
+	if os.Getenv("SEED_NUM_USERS") == "" {
+		if err := db.SeedData(database); err != nil {
+			log.Printf("Warning: Failed to seed data: %v", err)
+		}
 	}
 
 	// Log all routes during startup

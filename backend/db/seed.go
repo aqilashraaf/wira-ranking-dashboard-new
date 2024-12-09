@@ -2,65 +2,140 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"math/rand"
+	"os"
+	"strconv"
+	"time"
 )
+
+const (
+	defaultNumUsers = 5000 // This will generate 100,000+ total records due to multiple characters per user
+)
+
+// Malay warrior-themed name prefixes and suffixes
+var (
+	malayPrefixes = []string{"Hang", "Laksamana", "Tun", "Datuk", "Panglima", "Raja", "Sultan"}
+	malayNames    = []string{"Tuah", "Jebat", "Lekir", "Kasturi", "Lekiu", "Pahang", "Melaka", "Perang"}
+	malayTitles   = []string{"Perkasa", "Wira", "Pahlawan", "Sakti", "Gagah", "Berani"}
+)
+
+func generateMalayWarriorName() string {
+	prefix := malayPrefixes[rand.Intn(len(malayPrefixes))]
+	name := malayNames[rand.Intn(len(malayNames))]
+	title := malayTitles[rand.Intn(len(malayTitles))]
+	
+	// Add timestamp and random number to ensure uniqueness
+	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
+	uniqueNum := rand.Intn(9999)
+	return fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
+}
+
+func generateEmail(username string) string {
+	return fmt.Sprintf("%s@wira-ranking.com", username)
+}
 
 // SeedData seeds initial data into the database
 func SeedData(db *sql.DB) error {
-	// Seed test accounts
-	accounts := []struct {
-		username string
-		email    string
-	}{
-		{"player1", "player1@wira-ranking.com"},
-		{"player2", "player2@wira-ranking.com"},
-		{"player3", "player3@wira-ranking.com"},
-		{"player4", "player4@wira-ranking.com"},
-		{"player5", "player5@wira-ranking.com"},
-	}
-	for _, acc := range accounts {
-		_, err := db.Exec(`
-			INSERT INTO accounts (username, email) 
-			VALUES ($1, $2)
-			ON CONFLICT (username) DO NOTHING
-		`, acc.username, acc.email)
-		if err != nil {
-			return err
+	// Set random seed
+	rand.Seed(time.Now().UnixNano())
+
+	// Get number of users to generate from environment variable
+	numUsers := defaultNumUsers
+	if envNumUsers := os.Getenv("SEED_NUM_USERS"); envNumUsers != "" {
+		if n, err := strconv.Atoi(envNumUsers); err == nil {
+			numUsers = n
 		}
 	}
-	log.Println("Successfully seeded accounts")
 
-	// Seed characters with random class_ids
-	_, err := db.Exec(`
-		INSERT INTO characters (acc_id, class_id)
-		SELECT 
-			acc_id,
-			FLOOR(RANDOM() * 8)::int as class_id
-		FROM accounts
-		WHERE NOT EXISTS (
-			SELECT 1 FROM characters WHERE characters.acc_id = accounts.acc_id
-		)
-	`)
+	// Begin transaction
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	log.Println("Successfully seeded characters")
 
-	// Seed scores with random reward_scores
-	_, err = db.Exec(`
-		INSERT INTO scores (char_id, reward_score)
-		SELECT 
-			char_id,
-			FLOOR(RANDOM() * 1000)::int as reward_score
-		FROM characters
-		WHERE NOT EXISTS (
-			SELECT 1 FROM scores WHERE scores.char_id = characters.char_id
-		)
-	`)
+	// Prepare statements
+	stmtAccount, err := tx.Prepare(`
+		INSERT INTO accounts (username, email) 
+		VALUES ($1, $2) 
+		RETURNING acc_id`)
 	if err != nil {
 		return err
 	}
-	log.Println("Successfully seeded scores")
 
+	stmtCharacter, err := tx.Prepare(`
+		INSERT INTO characters (acc_id, class_id) 
+		VALUES ($1, $2) 
+		RETURNING char_id`)
+	if err != nil {
+		return err
+	}
+
+	stmtScore, err := tx.Prepare(`
+		INSERT INTO scores (char_id, reward_score) 
+		VALUES ($1, $2)`)
+	if err != nil {
+		return err
+	}
+
+	// Generate data
+	for i := 0; i < numUsers; i++ {
+		// Generate account
+		username := generateMalayWarriorName()
+		email := generateEmail(username)
+		
+		var accID int
+		err = stmtAccount.QueryRow(username, email).Scan(&accID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// Generate 3-8 characters per account
+		numCharacters := rand.Intn(6) + 3
+		for j := 0; j < numCharacters; j++ {
+			// Generate character with class_id between 0-8
+			classID := rand.Intn(9)
+			var charID int
+			err = stmtCharacter.QueryRow(accID, classID).Scan(&charID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			// Generate 5-10 scores per character
+			numScores := rand.Intn(6) + 5
+			for k := 0; k < numScores; k++ {
+				// Generate realistic score based on normal distribution
+				score := int(rand.NormFloat64()*1000 + 5000)
+				if score < 0 {
+					score = 0
+				}
+
+				_, err = stmtScore.Exec(charID, score)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+			}
+		}
+
+		if i%100 == 0 {
+			log.Printf("Generated data for %d users...\n", i)
+		}
+	}
+
+	// Commit transaction
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Data generation completed successfully!\n")
+	log.Printf("Generated:\n- %d users\n- ~%d characters\n- ~%d scores\n",
+		numUsers,
+		numUsers*5, // average 5 characters per user
+		numUsers*5*7) // average 7 scores per character
 	return nil
 }

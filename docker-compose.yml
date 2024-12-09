@@ -51,7 +51,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=aqash18
       - DB_NAME=wira_dashboard
-      - SEED_NUM_USERS=100
+      - SEED_NUM_USERS=5000
     depends_on:
       - db
     networks:
