@@ -8,13 +8,22 @@ import (
 // SeedData seeds initial data into the database
 func SeedData(db *sql.DB) error {
 	// Seed test accounts
-	accounts := []string{"player1", "player2", "player3", "player4", "player5"}
-	for _, username := range accounts {
+	accounts := []struct {
+		username string
+		email    string
+	}{
+		{"player1", "player1@wira-ranking.com"},
+		{"player2", "player2@wira-ranking.com"},
+		{"player3", "player3@wira-ranking.com"},
+		{"player4", "player4@wira-ranking.com"},
+		{"player5", "player5@wira-ranking.com"},
+	}
+	for _, acc := range accounts {
 		_, err := db.Exec(`
-			INSERT INTO accounts (username) 
-			VALUES ($1)
+			INSERT INTO accounts (username, email) 
+			VALUES ($1, $2)
 			ON CONFLICT (username) DO NOTHING
-		`, username)
+		`, acc.username, acc.email)
 		if err != nil {
 			return err
 		}
