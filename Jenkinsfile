@@ -64,9 +64,13 @@ pipeline {
         stage('Deploy to VPS') {
             steps {
                 script {
-                    // Copy necessary files to VPS
-                    sshagent(['vps-ssh-key']) {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'vps-ssh-key', keyFileVariable: 'SSH_KEY')]) {
                         sh '''
+                            # Set up SSH key
+                            mkdir -p ~/.ssh
+                            cp "$SSH_KEY" ~/.ssh/id_rsa
+                            chmod 600 ~/.ssh/id_rsa
+                            
                             # Create deployment directory on VPS
                             ssh -o StrictHostKeyChecking=no root@173.212.239.58 'mkdir -p /root/wira-dashboard'
                             
@@ -81,6 +85,9 @@ pipeline {
                                 docker-compose down --remove-orphans && \
                                 docker-compose up -d && \
                                 docker system prune -f"
+                                
+                            # Clean up SSH key
+                            rm -f ~/.ssh/id_rsa
                         '''
                     }
                 }
