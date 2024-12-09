@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"strings"
 
 	_ "github.com/lib/pq"
 	"github.com/joho/godotenv"
@@ -24,7 +23,6 @@ var (
 	malayPrefixes = []string{"Hang", "Laksamana", "Tun", "Datuk", "Panglima", "Raja", "Sultan"}
 	malayNames    = []string{"Tuah", "Jebat", "Lekir", "Kasturi", "Lekiu", "Pahang", "Melaka", "Perang"}
 	malayTitles   = []string{"Perkasa", "Wira", "Pahlawan", "Sakti", "Gagah", "Berani"}
-	emailDomains  = []string{"gmail.com", "yahoo.com", "hotmail.com", "outlook.com"}
 )
 
 func generateMalayWarriorName() (string, string) {
