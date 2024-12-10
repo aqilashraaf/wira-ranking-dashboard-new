@@ -30,6 +30,7 @@ func main() {
 		"http://173.212.239.58:3001",
 		"http://localhost:5173",
 		"http://localhost:5180",
+		"http://ricrym.aqash.xyz:3001",
 	}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}

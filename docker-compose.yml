@@ -9,6 +9,8 @@ services:
       - backend
     networks:
       - wira-network
+    ports:
+      - "3001:80"
 
   backend:
     build:
@@ -26,6 +28,8 @@ services:
     command: ["./wait-for-postgres.sh", "db", "./main"]
     networks:
       - wira-network
+    ports:
+      - "8081:8081"
 
   db:
     image: postgres:15-alpine
