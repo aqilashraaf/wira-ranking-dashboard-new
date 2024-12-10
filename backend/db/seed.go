@@ -67,8 +67,8 @@ func SeedData(db *sql.DB) error {
 
 	// Prepare statements
 	stmtAccount, err := tx.Prepare(`
-		INSERT INTO accounts (username, email) 
-		VALUES ($1, $2) 
+		INSERT INTO accounts (username, email, password) 
+		VALUES ($1, $2, $3) 
 		RETURNING acc_id`)
 	if err != nil {
 		return err
@@ -94,9 +94,10 @@ func SeedData(db *sql.DB) error {
 		// Generate account
 		username := generateUniqueName(i + 1)  // Add 1 to avoid starting from 0
 		email := generateEmail(username)
+		password := "$2a$10$3QxDjD1ylgPnRgQLhBrTaeGzHGWBF.d0/QqyXFYuEMF5HUWCxYVfK" // hashed password for "password123"
 		
 		var accID int
-		err = stmtAccount.QueryRow(username, email).Scan(&accID)
+		err = stmtAccount.QueryRow(username, email, password).Scan(&accID)
 		if err != nil {
 			tx.Rollback()
 			return err

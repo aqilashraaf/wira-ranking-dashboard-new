@@ -7,7 +7,12 @@ DROP TABLE IF EXISTS accounts;
 CREATE TABLE accounts (
     acc_id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    two_factor_secret VARCHAR(32),
+    two_factor_enabled BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create characters table
