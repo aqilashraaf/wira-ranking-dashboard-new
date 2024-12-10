@@ -5,7 +5,7 @@ import router from '../router';
 const isDevelopment = import.meta.env.DEV;
 const apiURL = isDevelopment
   ? 'http://localhost:8081'
-  : 'https://ricrym.aqash.xyz/api';
+  : 'https://ricrym.aqash.xyz';
 
 console.log('Environment:', isDevelopment ? 'Development' : 'Production');
 console.log('API URL:', apiURL);
