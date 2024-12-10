@@ -4,8 +4,8 @@
       <h1>Security Settings</h1>
       <div class="settings-section">
         <h2>Two-Factor Authentication</h2>
-        <p class="status-text">
-          Status: <span :class="{ 'enabled': is2FAEnabled, 'disabled': !is2FAEnabled }">
+        <p class="status-text text-content">
+          Status: <span :class="{ 'status-enabled': is2FAEnabled, 'status-disabled': !is2FAEnabled }">
             {{ is2FAEnabled ? 'Enabled' : 'Disabled' }}
           </span>
         </p>
@@ -23,17 +23,17 @@
         <h2>Recent Activity</h2>
         <div class="activity-list" v-if="activities.length">
           <div v-for="activity in activities" :key="activity.id" class="activity-item">
-            <span class="activity-type">{{ activity.type }}</span>
-            <span class="activity-time">{{ formatDate(activity.timestamp) }}</span>
+            <span class="activity-type text-content">{{ activity.type }}</span>
+            <span class="activity-time text-content">{{ formatDate(activity.timestamp) }}</span>
           </div>
         </div>
-        <p v-else class="no-activity">No recent activity</p>
+        <p v-else class="no-activity text-content">No recent activity</p>
       </div>
       <div class="section">
         <h3>Change Password</h3>
         <form @submit.prevent="changePassword" class="password-form">
           <div class="form-group">
-            <label for="currentPassword">Current Password</label>
+            <label for="currentPassword" class="text-content">Current Password</label>
             <input
               id="currentPassword"
               v-model="currentPassword"
@@ -42,7 +42,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="newPassword">New Password</label>
+            <label for="newPassword" class="text-content">New Password</label>
             <input
               id="newPassword"
               v-model="newPassword"
@@ -51,7 +51,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="confirmNewPassword">Confirm New Password</label>
+            <label for="confirmNewPassword" class="text-content">Confirm New Password</label>
             <input
               id="confirmNewPassword"
               v-model="confirmNewPassword"
@@ -211,19 +211,22 @@ h2 {
 .status-text {
   margin-bottom: 1rem;
   font-size: 1rem;
-  color: #4a5568;
 }
 
-.status-text span {
-  font-weight: bold;
+.security-status {
+  @apply text-gray-800 dark:text-gray-200;
 }
 
-.enabled {
-  color: #4CAF50;
+.status-enabled {
+  @apply text-green-600 dark:text-green-400;
 }
 
-.disabled {
-  color: #dc3545;
+.status-disabled {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.text-content {
+  @apply text-gray-900 dark:text-gray-100;
 }
 
 .action-buttons {

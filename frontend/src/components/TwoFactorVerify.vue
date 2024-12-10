@@ -9,7 +9,7 @@
           type="text"
           placeholder="Enter 6-digit code"
           maxlength="6"
-          class="w-40 px-4 py-2 text-center text-lg tracking-widest border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
           @keyup.enter="verify"
         />
         <button 
@@ -58,4 +58,11 @@ export default {
 </script>
 
 <style scoped>
+.form-help.error {
+  @apply text-red-600 dark:text-red-400 text-sm mt-1;
+}
+
+.text-content {
+  @apply text-gray-900 dark:text-gray-100;
+}
 </style>

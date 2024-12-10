@@ -10,7 +10,7 @@
             v-model="username"
             type="text"
             placeholder="Enter username"
-            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @keyup.enter="handleLogin"
           />
         </div>
@@ -22,7 +22,7 @@
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Enter password"
-              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @keyup.enter="handleLogin"
             />
             <button 
@@ -156,5 +156,12 @@ export default {
 </script>
 
 <style scoped>
+.form-help.error {
+  @apply text-red-600 dark:text-red-400 text-sm mt-1;
+}
+
+.hover\:text-indigo-500 {
+  @apply text-indigo-600 dark:text-indigo-400;
+}
 /* Removed styles */
 </style>

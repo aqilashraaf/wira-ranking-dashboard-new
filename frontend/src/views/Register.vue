@@ -10,7 +10,7 @@
             v-model="username"
             type="text"
             placeholder="Choose a username"
-            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @blur="validateUsername"
           />
           <span class="form-help error" v-if="errors.username">{{ errors.username }}</span>
@@ -23,7 +23,7 @@
             v-model="email"
             type="email"
             placeholder="Enter your email"
-            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @blur="validateEmail"
           />
           <span class="form-help error" v-if="errors.email">{{ errors.email }}</span>
@@ -37,7 +37,7 @@
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Choose a password"
-              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @blur="validatePassword"
             />
             <button 
@@ -81,7 +81,7 @@
               v-model="confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
               placeholder="Confirm your password"
-              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @input="validateConfirmPassword"
             />
             <button 
@@ -529,52 +529,23 @@ export default {
 }
 
 .password-requirements {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #666;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  background: #f8f9fa;
+  @apply mt-2 text-sm space-y-1 text-gray-800 dark:text-gray-200;
 }
 
 .requirement {
-  display: flex;
-  align-items: center;
-  margin: 0.25rem 0;
-  opacity: 0.7;
-  transition: all 0.2s;
+  @apply flex items-center space-x-2 text-gray-700 dark:text-gray-300;
 }
 
 .requirement.met {
-  opacity: 1;
-  color: #4CAF50;
+  @apply text-green-600 dark:text-green-400;
 }
 
-.requirement .icon {
-  margin-right: 0.5rem;
-  font-size: 1rem;
-  min-width: 1rem;
-  text-align: center;
+.icon {
+  @apply inline-block w-4 h-4;
 }
 
-.password-match {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #dc3545;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.password-match.matched {
-  color: #4CAF50;
-}
-
-.password-match .icon {
-  margin-right: 0.5rem;
-  font-size: 1rem;
-  min-width: 1rem;
-  text-align: center;
+.form-help.error {
+  @apply text-red-600 dark:text-red-400 text-sm mt-1;
 }
 
 .group {
