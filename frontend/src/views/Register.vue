@@ -1,43 +1,48 @@
 <template>
-  <div class="register-container">
-    <div class="register-card">
-      <h1>WIRA Dashboard Register</h1>
-      <div class="register-form">
-        <div class="form-group">
-          <label for="username">Username</label>
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white">WIRA Dashboard Register</h1>
+      <div class="mt-8 space-y-6">
+        <div class="space-y-2">
+          <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
           <input
             id="username"
             v-model="username"
             type="text"
             placeholder="Choose a username"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @blur="validateUsername"
           />
           <span class="form-help error" v-if="errors.username">{{ errors.username }}</span>
         </div>
-        <div class="form-group">
-          <label for="email">Email</label>
+
+        <div class="space-y-2">
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
           <input
             id="email"
             v-model="email"
             type="email"
             placeholder="Enter your email"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @blur="validateEmail"
           />
           <span class="form-help error" v-if="errors.email">{{ errors.email }}</span>
         </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="password-input-container">
+
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+          <div class="relative">
             <input
               id="password"
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Choose a password"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @blur="validatePassword"
             />
             <button 
               type="button" 
-              class="toggle-password"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 dark:text-gray-400"
               @click="showPassword = !showPassword"
             >
               {{ showPassword ? '🔒' : '👁️' }}
@@ -62,24 +67,26 @@
             </div>
             <div class="requirement" :class="{ met: hasSpecialChar }">
               <span class="icon">{{ hasSpecialChar ? '✅' : '❌' }}</span>
-              At least one special character (!@#$%^&amp;*(),.?&quot;:{}|)
+              At least one special character (!@#$%^&*(),.?":{}|)
             </div>
           </div>
           <span class="form-help error" v-if="errors.password">{{ errors.password }}</span>
         </div>
-        <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
-          <div class="password-input-container">
+
+        <div class="space-y-2">
+          <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
+          <div class="relative">
             <input
               id="confirmPassword"
               v-model="confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
               placeholder="Confirm your password"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @input="validateConfirmPassword"
             />
             <button 
               type="button" 
-              class="toggle-password"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 dark:text-gray-400"
               @click="showConfirmPassword = !showConfirmPassword"
             >
               {{ showConfirmPassword ? '🔒' : '👁️' }}
@@ -91,11 +98,20 @@
           </div>
           <span class="form-help error" v-if="errors.confirmPassword">{{ errors.confirmPassword }}</span>
         </div>
-        <button @click="handleRegister" :class="{ 'button-disabled': !isFormValid }">
+
+        <button 
+          @click="handleRegister" 
+          :class="{ 'button-disabled': !isFormValid }"
+          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Register
         </button>
-        <p class="login-link">
-          Already have an account? <router-link to="/login">Login</router-link>
+
+        <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+          Already have an account? 
+          <router-link to="/login" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+            Login
+          </router-link>
         </p>
       </div>
     </div>
@@ -250,90 +266,281 @@ export default {
 </script>
 
 <style scoped>
-.register-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.min-h-screen {
   min-height: 100vh;
-  background: #f5f5f5;
 }
 
-.register-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.bg-gray-100 {
+  background-color: #f7fafc;
+}
+
+.dark\:bg-gray-900 {
+  background-color: #1a1d23;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.py-12 {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.sm\:px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.lg\:px-8 {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.max-w-md {
+  max-width: 720px;
+}
+
+.w-full {
   width: 100%;
-  max-width: 400px;
 }
 
-h1 {
-  text-align: center;
-  color: #2c3e50;
+.space-y-8 {
+  margin-top: 2rem;
   margin-bottom: 2rem;
 }
 
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.bg-white {
+  background-color: #ffffff;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.dark\:bg-gray-800 {
+  background-color: #2d3748;
 }
 
-label {
-  color: #4a5568;
+.p-8 {
+  padding: 2rem;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.shadow-md {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-gray-900 {
+  color: #1a1d23;
+}
+
+.dark\:text-white {
+  color: #ffffff;
+}
+
+.mt-8 {
+  margin-top: 2rem;
+}
+
+.space-y-6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.block {
+  display: block;
+}
+
+.text-sm {
   font-size: 0.875rem;
 }
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  transition: box-shadow 0.3s ease;
+.font-medium {
+  font-weight: medium;
 }
 
-#password, #confirmPassword {
-  letter-spacing: 1px;
+.text-gray-700 {
+  color: #4a5568;
 }
 
-.password-input-container {
+.dark\:text-gray-300 {
+  color: #9ca3af;
+}
+
+.appearance-none {
+  appearance: none;
+}
+
+.relative {
   position: relative;
+}
+
+.block {
+  display: block;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.border {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.border-gray-300 {
+  border-color: #d1d5db;
+}
+
+.dark\:border-gray-600 {
+  border-color: #4a5568;
+}
+
+.placeholder-gray-500 {
+  color: #a0aec0;
+}
+
+.dark\:placeholder-gray-400 {
+  color: #9ca3af;
+}
+
+.text-gray-900 {
+  color: #1a1d23;
+}
+
+.dark\:text-white {
+  color: #ffffff;
+}
+
+.rounded-md {
+  border-radius: 0.375rem;
+}
+
+.focus\:outline-none {
+  outline: none;
+}
+
+.focus\:ring-indigo-500 {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+}
+
+.focus\:border-indigo-500 {
+  border-color: #6366f1;
+}
+
+.focus\:z-10 {
+  z-index: 10;
+}
+
+.sm\:text-sm {
+  font-size: 0.875rem;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.dark\:bg-gray-700 {
+  background-color: #2d3748;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.inset-y-0 {
+  top: 0;
+  bottom: 0;
+}
+
+.right-0 {
+  right: 0;
+}
+
+.pr-3 {
+  padding-right: 0.75rem;
+}
+
+.flex {
   display: flex;
+}
+
+.items-center {
   align-items: center;
 }
 
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-size: 1.2em;
+.text-gray-600 {
+  color: #718096;
+}
+
+.dark\:text-gray-400 {
+  color: #9ca3af;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-red-600 {
+  color: #e53e3e;
+}
+
+.dark\:text-red-400 {
+  color: #dc3545;
 }
 
 .password-requirements {
-  margin-top: 8px;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #666;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
   background: #f8f9fa;
 }
 
 .requirement {
   display: flex;
   align-items: center;
-  margin: 4px 0;
+  margin: 0.25rem 0;
   opacity: 0.7;
   transition: all 0.2s;
 }
@@ -344,14 +551,14 @@ input {
 }
 
 .requirement .icon {
-  margin-right: 8px;
+  margin-right: 0.5rem;
   font-size: 1rem;
-  min-width: 20px;
+  min-width: 1rem;
   text-align: center;
 }
 
 .password-match {
-  margin-top: 8px;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #dc3545;
   display: flex;
@@ -364,31 +571,94 @@ input {
 }
 
 .password-match .icon {
-  margin-right: 8px;
+  margin-right: 0.5rem;
   font-size: 1rem;
-  min-width: 20px;
+  min-width: 1rem;
   text-align: center;
 }
 
-.form-help {
-  display: block;
-  margin-top: 5px;
-  font-size: 14px;
+.group {
+  display: inline-block;
+  vertical-align: middle;
 }
 
-.error {
-  color: #dc3545;
+.relative {
+  position: relative;
 }
 
-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.w-full {
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.border {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.border-transparent {
+  border-color: transparent;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.font-medium {
+  font-weight: medium;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+.bg-indigo-600 {
+  background-color: #5a67d8;
+}
+
+.hover\:bg-indigo-700 {
+  background-color: #4f46e5;
+}
+
+.focus\:outline-none {
+  outline: none;
+}
+
+.focus\:ring-2 {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+.focus\:ring-offset-2 {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+.focus\:ring-indigo-500 {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+}
+
+.disabled\:opacity-50 {
+  opacity: 0.5;
+}
+
+.disabled\:cursor-not-allowed {
+  cursor: not-allowed;
 }
 
 .button-disabled {
@@ -397,22 +667,39 @@ button {
   background: #ccc !important;
 }
 
-button:not(.button-disabled):hover {
-  background: #45a049;
-}
-
-.login-link {
+.text-center {
   text-align: center;
-  margin-top: 1rem;
-  color: #4a5568;
 }
 
-.login-link a {
-  color: #4CAF50;
-  text-decoration: none;
+.text-sm {
+  font-size: 0.875rem;
 }
 
-.login-link a:hover {
-  text-decoration: underline;
+.text-gray-600 {
+  color: #718096;
+}
+
+.dark\:text-gray-400 {
+  color: #9ca3af;
+}
+
+.font-medium {
+  font-weight: medium;
+}
+
+.text-indigo-600 {
+  color: #5a67d8;
+}
+
+.hover\:text-indigo-500 {
+  color: #4f46e5;
+}
+
+.dark\:text-indigo-400 {
+  color: #6574cd;
+}
+
+.dark\:hover\:text-indigo-300 {
+  color: #7a84dc;
 }
 </style>

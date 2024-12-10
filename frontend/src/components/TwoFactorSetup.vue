@@ -1,36 +1,47 @@
 <template>
-  <div class="two-factor-setup">
-    <div v-if="!isEnabled" class="setup-container">
-      <h2>Setup Two-Factor Authentication</h2>
-      <div v-if="qrCode" class="qr-section">
-        <p>Scan this QR code with your authenticator app:</p>
-        <div class="qr-wrapper">
-          <img :src="qrCodeDataUrl" alt="2FA QR Code" class="qr-code" />
+  <div class="max-w-lg mx-auto p-5">
+    <div v-if="!isEnabled" class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Setup Two-Factor Authentication</h2>
+      <div v-if="qrCode" class="space-y-4">
+        <p class="text-gray-600 dark:text-gray-300">Scan this QR code with your authenticator app:</p>
+        <div class="flex justify-center">
+          <img :src="qrCodeDataUrl" alt="2FA QR Code" class="w-48 h-48" />
         </div>
-        <p class="secret-key">
-          Or manually enter this code: <code>{{ secret }}</code>
+        <p class="text-gray-600 dark:text-gray-300">
+          Or manually enter this code: <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{{ secret }}</code>
         </p>
-        <div class="verify-section">
+        <div class="space-y-3">
           <input
             v-model="verificationCode"
             type="text"
             placeholder="Enter 6-digit code"
             maxlength="6"
-            class="verification-input"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-          <button @click="verify2FA" :disabled="!verificationCode" class="verify-button">
+          <button 
+            @click="verify2FA" 
+            :disabled="!verificationCode"
+            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+          >
             Verify and Enable 2FA
           </button>
         </div>
       </div>
-      <button v-else @click="setup2FA" class="setup-button">
+      <button 
+        v-else 
+        @click="setup2FA"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+      >
         Set up Two-Factor Authentication
       </button>
     </div>
-    <div v-else class="enabled-container">
-      <h2>Two-Factor Authentication is Enabled</h2>
-      <p>Your account is protected with 2FA.</p>
-      <button @click="disable2FA" class="disable-button">
+    <div v-else class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Two-Factor Authentication is Enabled</h2>
+      <p class="text-gray-600 dark:text-gray-300 mb-4">Your account is protected with 2FA.</p>
+      <button 
+        @click="disable2FA"
+        class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+      >
         Disable 2FA
       </button>
     </div>
@@ -136,101 +147,4 @@ export default {
 </script>
 
 <style scoped>
-.two-factor-setup {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.setup-container, .enabled-container {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  color: #2c3e50;
-  margin-bottom: 20px;
-}
-
-.qr-section {
-  text-align: center;
-}
-
-.qr-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 20px 0;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.qr-code {
-  width: 200px;
-  height: 200px;
-}
-
-.secret-key {
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 4px;
-  margin: 20px 0;
-  color: #2c3e50;
-}
-
-.secret-key code {
-  background: #e9ecef;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  color: #2c3e50;
-}
-
-.verify-section {
-  margin-top: 20px;
-}
-
-.verification-input {
-  width: 150px;
-  padding: 8px;
-  font-size: 16px;
-  text-align: center;
-  margin-right: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-family: monospace;
-  letter-spacing: 2px;
-}
-
-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background: #45a049;
-}
-
-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-.disable-button {
-  background: #dc3545;
-}
-
-.disable-button:hover {
-  background: #c82333;
-}
 </style>

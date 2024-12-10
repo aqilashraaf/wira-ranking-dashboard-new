@@ -1,42 +1,51 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <h1>WIRA Dashboard Login</h1>
-      <div v-if="!requires2FA" class="login-form">
-        <div class="form-group">
-          <label for="username">Username</label>
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white">WIRA Dashboard Login</h1>
+      <div v-if="!requires2FA" class="mt-8 space-y-6">
+        <div class="space-y-2">
+          <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
           <input
             id="username"
             v-model="username"
             type="text"
             placeholder="Enter username"
+            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
             @keyup.enter="handleLogin"
           />
         </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="password-input-container">
+        <div class="space-y-2">
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+          <div class="relative">
             <input
               id="password"
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               placeholder="Enter password"
+              class="appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-white dark:bg-gray-700"
               @keyup.enter="handleLogin"
             />
             <button 
               type="button" 
-              class="toggle-password"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600 dark:text-gray-400"
               @click="showPassword = !showPassword"
             >
               {{ showPassword ? '🔒' : '👁️' }}
             </button>
           </div>
         </div>
-        <button @click="handleLogin" :disabled="!isValid">
+        <button 
+          @click="handleLogin" 
+          :disabled="!isValid"
+          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Login
         </button>
-        <p class="register-link">
-          Don't have an account? <router-link to="/register">Register</router-link>
+        <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+          Don't have an account? 
+          <router-link to="/register" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+            Register
+          </router-link>
         </p>
       </div>
       <div v-else>
@@ -147,109 +156,5 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: #f5f5f5;
-}
-
-.login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 2rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  color: #4a5568;
-  font-size: 0.875rem;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  transition: box-shadow 0.3s ease;
-}
-
-#password {
-  letter-spacing: 1px;
-}
-
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-size: 1.2rem;
-}
-
-button {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background: #45a049;
-}
-
-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 1rem;
-  color: #4a5568;
-}
-
-.register-link a {
-  color: #4CAF50;
-  text-decoration: none;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
-}
+/* Removed styles */
 </style>
