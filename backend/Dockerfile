@@ -5,14 +5,14 @@ RUN apk add --no-cache postgresql-client
 
 WORKDIR /app
 
-# Copy go mod and sum files from backend directory
-COPY backend/go.mod backend/go.sum ./
+# Copy go mod and sum files
+COPY go.mod go.sum ./
 
 # Download all dependencies
 RUN go mod download
 
 # Copy the source code
-COPY backend/ .
+COPY . .
 
 # Copy the wait-for-postgres script
 COPY wait-for-postgres.sh ./wait-for-postgres.sh
