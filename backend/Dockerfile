@@ -22,4 +22,4 @@ RUN chmod +x ./wait-for-postgres.sh
 RUN go build -o main .
 
 # Command to run
-CMD ["./wait-for-postgres.sh", "db", "./main"]
+CMD ["./wait-for-postgres.sh", "./main"]
