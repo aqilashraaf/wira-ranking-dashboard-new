@@ -32,11 +32,11 @@ var (
 	characterClasses = []int{1, 2, 3, 4, 5, 6, 7, 8}
 )
 
-func generateUniqueName() string {
+func generateUniqueName(id int) string {
 	prefix := malayPrefixes[rand.Intn(len(malayPrefixes))]
 	name := malayNames[rand.Intn(len(malayNames))]
 	title := malayTitles[rand.Intn(len(malayTitles))]
-	return fmt.Sprintf("%s %s %s", prefix, name, title)
+	return fmt.Sprintf("%s %s %s %d", prefix, name, title, id)
 }
 
 func generateEmail(username string) string {
@@ -92,7 +92,7 @@ func SeedData(db *sql.DB) error {
 	// Generate data
 	for i := 0; i < n; i++ {
 		// Generate account
-		username := generateUniqueName()
+		username := generateUniqueName(i + 1)  // Add 1 to avoid starting from 0
 		email := generateEmail(username)
 		
 		var accID int

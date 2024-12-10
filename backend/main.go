@@ -49,8 +49,8 @@ func main() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	// Only seed if SEED_NUM_USERS is not set (meaning we're not running with the seeder service)
-	if os.Getenv("SEED_NUM_USERS") == "" {
+	// Seed data if SEED_NUM_USERS is set
+	if os.Getenv("SEED_NUM_USERS") != "" {
 		if err := db.SeedData(database); err != nil {
 			log.Printf("Warning: Failed to seed data: %v", err)
 		}
