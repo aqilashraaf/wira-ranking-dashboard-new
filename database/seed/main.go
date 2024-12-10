@@ -29,15 +29,15 @@ func generateMalayWarriorName() (string, string) {
 	prefix := malayPrefixes[rand.Intn(len(malayPrefixes))]
 	name := malayNames[rand.Intn(len(malayNames))]
 	title := malayTitles[rand.Intn(len(malayTitles))]
-	
+
 	// Add timestamp and random number to ensure uniqueness
 	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
 	uniqueNum := rand.Intn(9999)
 	username := fmt.Sprintf("%s_%s_%s_%d_%d", prefix, name, title, timestamp, uniqueNum)
-	
+
 	// Generate email using the username
 	email := fmt.Sprintf("%s@wira.com", strings.ToLower(username))
-	
+
 	return username, email
 }
 
@@ -53,22 +53,22 @@ func main() {
 	if host == "" {
 		host = "localhost"
 	}
-	
+
 	port := os.Getenv("DB_PORT")
 	if port == "" {
 		port = "5434"
 	}
-	
+
 	user := os.Getenv("DB_USER")
 	if user == "" {
 		user = "postgres"
 	}
-	
+
 	password := os.Getenv("DB_PASSWORD")
 	if password == "" {
 		password = "aqash18"
 	}
-	
+
 	dbname := os.Getenv("DB_NAME")
 	if dbname == "" {
 		dbname = "wira_dashboard"
@@ -85,7 +85,7 @@ func main() {
 	// Connect to database
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	
+
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal(err)
@@ -108,8 +108,8 @@ func main() {
 
 	// Prepare statements
 	stmtAccount, err := tx.Prepare(`
-		INSERT INTO accounts (username, email)
-		VALUES ($1, $2)
+		INSERT INTO accounts (username, email, password)
+		VALUES ($1, $2, $3)
 		RETURNING acc_id`)
 	if err != nil {
 		log.Fatal(err)
@@ -134,9 +134,10 @@ func main() {
 	for i := 0; i < numUsers; i++ {
 		// Generate account
 		username, email := generateMalayWarriorName()
-		
+		password := "$2a$10$3QxDjD1ylgPnRgQLhBrTaeGzHGWBF.d0/QqyXFYuEMF5HUWCxYVfK" // hashed password for "password123"
+
 		var accID int
-		err = stmtAccount.QueryRow(username, email).Scan(&accID)
+		err = stmtAccount.QueryRow(username, email, password).Scan(&accID)
 		if err != nil {
 			tx.Rollback()
 			log.Fatal(err)

@@ -4,8 +4,8 @@ import router from '../router';
 // Configure axios defaults
 const isDevelopment = import.meta.env.DEV;
 const apiURL = isDevelopment
-  ? 'http://localhost:3000'
-  : 'https://ricrym.aqash.xyz';
+  ? 'http://localhost:8081'
+  : 'https://ricrym.aqash.xyz/api';
 
 console.log('Environment:', isDevelopment ? 'Development' : 'Production');
 console.log('API URL:', apiURL);
