@@ -25,7 +25,7 @@ services:
       - DB_PASSWORD=aqash18
       - DB_NAME=wira_dashboard
       - SEED_NUM_USERS=5000
-    command: sh -c "./wait-for-postgres.sh db && ./main"
+    command: ["./wait-for-postgres.sh", "db", "./main"]
     networks:
       - wira-network
     ports:
