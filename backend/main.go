@@ -31,6 +31,7 @@ func main() {
 		"http://localhost:5173",
 		"http://localhost:5180",
 		"http://ricrym.aqash.xyz:3001",
+		"https://ricrym.aqash.xyz",
 	}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
@@ -49,24 +50,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+	defer database.Close()
 
-	// Seed data if SEED_NUM_USERS is set
-	if os.Getenv("SEED_NUM_USERS") != "" {
-		if err := db.SeedData(database); err != nil {
-			log.Printf("Warning: Failed to seed data: %v", err)
-		}
-	}
-
-	// Log all routes during startup
-	log.Println("Registering routes...")
+	// Setup routes
 	routes.SetupRoutes(r, database)
-	for _, route := range r.Routes() {
-		log.Printf("Route: %s %s", route.Method, route.Path)
-	}
 
 	// Start server
-	log.Println("Server starting on :8080")
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
+	log.Println("Server starting on :", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

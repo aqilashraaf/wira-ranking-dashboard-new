@@ -42,6 +42,8 @@ services:
       - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
     networks:
       - wira-network
+    ports:
+      - "5432:5432"
 
   seeder:
     build:
